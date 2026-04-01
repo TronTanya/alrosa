@@ -4,6 +4,11 @@ import { motion } from "motion/react";
 import { BarChart3, Bell, Settings, Sparkles } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
 import { HR_LD_SECTION_LABEL, L_D_GLOSS, HR_GLOSS } from "../lib/hrLdLabels";
+import {
+  loadHrNotificationPrefs,
+  saveHrNotificationPrefs,
+  type HrNotificationPrefs,
+} from "../lib/hrNotificationPreferences";
 
 function Toggle({
   on,
@@ -84,11 +89,17 @@ function Row({
 }
 
 export function HRSettingsPage() {
-  const [notifyNewApps, setNotifyNewApps] = useState(true);
-  const [notifyOverdue, setNotifyOverdue] = useState(true);
-  const [notifyDigest, setNotifyDigest] = useState(false);
+  const [hrNotify, setHrNotify] = useState<HrNotificationPrefs>(() => loadHrNotificationPrefs());
   const [aiHints, setAiHints] = useState(true);
   const [exportReminder, setExportReminder] = useState(true);
+
+  const patchHrNotify = (partial: Partial<HrNotificationPrefs>) => {
+    setHrNotify((prev) => {
+      const next = { ...prev, ...partial };
+      saveHrNotificationPrefs(next);
+      return next;
+    });
+  };
 
   return (
     <div className="employee-tab-ornament">
@@ -140,17 +151,29 @@ export function HRSettingsPage() {
           <Row
             title="Новые заявки на обучение"
             desc={`Push и письмо при появлении заявки в очереди ${L_D_GLOSS}.`}
-            toggle={{ on: notifyNewApps, onChange: setNotifyNewApps, id: "hr-notify-apps" }}
+            toggle={{
+              on: hrNotify.newApplications,
+              onChange: (v) => patchHrNotify({ newApplications: v }),
+              id: "hr-notify-apps",
+            }}
           />
           <Row
             title="Просроченные согласования"
             desc="Напоминание, если заявка без решения дольше порога (настраивается в политике)."
-            toggle={{ on: notifyOverdue, onChange: setNotifyOverdue, id: "hr-notify-overdue" }}
+            toggle={{
+              on: hrNotify.overdueApprovals,
+              onChange: (v) => patchHrNotify({ overdueApprovals: v }),
+              id: "hr-notify-overdue",
+            }}
           />
           <Row
             title="Еженедельный дайджест"
             desc="Сводка по заявкам и мероприятиям на почту hr-learning."
-            toggle={{ on: notifyDigest, onChange: setNotifyDigest, id: "hr-digest" }}
+            toggle={{
+              on: hrNotify.weeklyDigest,
+              onChange: (v) => patchHrNotify({ weeklyDigest: v }),
+              id: "hr-digest",
+            }}
             last
           />
         </div>

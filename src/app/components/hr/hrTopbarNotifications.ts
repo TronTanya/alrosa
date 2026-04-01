@@ -1,3 +1,4 @@
+import { loadHrNotificationPrefs } from "../../lib/hrNotificationPreferences";
 import { L_D_GLOSS } from "../../lib/hrLdLabels";
 import { countHrPendingApplications } from "../../lib/hrPendingApplicationsCount";
 import {
@@ -97,9 +98,10 @@ export const HR_TOPBAR_NOTIFICATIONS_INITIAL: HrTopbarNotifItem[] = [
 ];
 
 export function buildHrTopbarNotificationList(): HrTopbarNotifItem[] {
+  const prefs = loadHrNotificationPrefs();
   const pending = countHrPendingApplications();
   const reads = loadNotificationReads(SITE_NOTIF_READS_HR);
-  return HR_TOPBAR_NOTIFICATIONS_INITIAL.map((item) => {
+  const mapped = HR_TOPBAR_NOTIFICATIONS_INITIAL.map((item) => {
     if (item.id === "2") {
       const read = !isHrPendingNotifUnread(pending);
       return {
@@ -119,5 +121,11 @@ export function buildHrTopbarNotificationList(): HrTopbarNotifItem[] {
       ...item,
       read: reads[item.id] !== undefined ? reads[item.id] : item.read,
     };
+  });
+
+  return mapped.filter((item) => {
+    if (!prefs.newApplications && item.id === "2") return false;
+    if (!prefs.overdueApprovals && (item.id === "4" || item.id === "5")) return false;
+    return true;
   });
 }

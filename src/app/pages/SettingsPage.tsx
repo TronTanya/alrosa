@@ -3,6 +3,11 @@ import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { logout } from "../auth/session";
 import { useLocale } from "../contexts/LocaleContext";
+import {
+  loadEmployeeNotificationPrefs,
+  saveEmployeeNotificationPrefs,
+  type EmployeeNotificationPrefs,
+} from "../lib/employeeNotificationPreferences";
 import type { AppLocale } from "../i18n/localeStorage";
 import { Settings, Bell, Globe, Shield, LogOut, ChevronDown } from "lucide-react";
 
@@ -61,11 +66,17 @@ const LANG_OPTIONS: { id: AppLocale; labelKey: string }[] = [
 export function SettingsPage() {
   const navigate = useNavigate();
   const { locale, setLocale, t } = useLocale();
-  const [notifyCourses, setNotifyCourses] = useState(true);
-  const [notifyIpr, setNotifyIpr] = useState(true);
-  const [notifyEmail, setNotifyEmail] = useState(false);
+  const [prefs, setPrefs] = useState<EmployeeNotificationPrefs>(() => loadEmployeeNotificationPrefs());
   const [aiHistory, setAiHistory] = useState(true);
   const [langOpen, setLangOpen] = useState(false);
+
+  const patchNotify = (partial: Partial<Pick<EmployeeNotificationPrefs, "courses" | "ipr" | "emailDigest">>) => {
+    setPrefs((prev) => {
+      const next = { ...prev, ...partial };
+      saveEmployeeNotificationPrefs(next);
+      return next;
+    });
+  };
 
   const currentLangLabel = locale === "en" ? t("settings.langEn") : t("settings.langRu");
 
@@ -139,22 +150,22 @@ export function SettingsPage() {
               id: "n1",
               label: t("settings.n1"),
               sub: t("settings.n1sub"),
-              value: notifyCourses,
-              set: setNotifyCourses,
+              value: prefs.courses,
+              set: (v: boolean) => patchNotify({ courses: v }),
             },
             {
               id: "n2",
               label: t("settings.n2"),
               sub: t("settings.n2sub"),
-              value: notifyIpr,
-              set: setNotifyIpr,
+              value: prefs.ipr,
+              set: (v: boolean) => patchNotify({ ipr: v }),
             },
             {
               id: "n3",
               label: t("settings.n3"),
               sub: t("settings.n3sub"),
-              value: notifyEmail,
-              set: setNotifyEmail,
+              value: prefs.emailDigest,
+              set: (v: boolean) => patchNotify({ emailDigest: v }),
             },
           ].map((row, i, arr) => (
             <label

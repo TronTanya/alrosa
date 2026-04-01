@@ -2,32 +2,7 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Save, Settings } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
-
-function toast(msg: string) {
-  const el = document.createElement("div");
-  el.textContent = msg;
-  Object.assign(el.style, {
-    position: "fixed",
-    bottom: "80px",
-    right: "24px",
-    zIndex: "9999",
-    background: "rgba(0,0,0,0.97)",
-    border: "1px solid rgba(129,208,245,0.35)",
-    color: "#ffffff",
-    borderRadius: "12px",
-    padding: "12px 18px",
-    fontSize: "13px",
-    fontFamily: "var(--font-sans)",
-    fontWeight: "500",
-    maxWidth: "380px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-  });
-  document.body.appendChild(el);
-  setTimeout(() => {
-    el.style.opacity = "0";
-    setTimeout(() => el.remove(), 300);
-  }, 2600);
-}
+import { showAdminToast } from "../lib/adminToast";
 
 type ToggleRowProps = {
   id: string;
@@ -99,7 +74,7 @@ export function AdminConfigurationPage() {
   const [webhookUrl, setWebhookUrl] = useState("https://hooks.internal.example/eso-events");
 
   const handleSave = () => {
-    toast("Демо: настройки сохранены только в текущей сессии браузера.");
+    showAdminToast("Демо: настройки сохранены только в текущей сессии браузера.");
   };
 
   return (

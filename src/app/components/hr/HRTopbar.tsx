@@ -15,6 +15,7 @@ import {
   SITE_NOTIFICATIONS_CHANGED,
 } from "../../lib/siteNotificationsStorage";
 import { TRAINING_APPLICATIONS_UPDATED } from "../../lib/trainingApplicationsStorage";
+import { HR_NOTIFICATION_PREFS_CHANGED } from "../../lib/hrNotificationPreferences";
 import { countHrPendingApplications } from "../../lib/hrPendingApplicationsCount";
 import {
   HR_TOPBAR_NOTIFICATIONS_INITIAL,
@@ -62,10 +63,12 @@ export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbar
     window.addEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
     window.addEventListener(HR_DECISIONS_UPDATED, sync);
     window.addEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    window.addEventListener(HR_NOTIFICATION_PREFS_CHANGED, sync);
     return () => {
       window.removeEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
       window.removeEventListener(HR_DECISIONS_UPDATED, sync);
       window.removeEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+      window.removeEventListener(HR_NOTIFICATION_PREFS_CHANGED, sync);
     };
   }, []);
 

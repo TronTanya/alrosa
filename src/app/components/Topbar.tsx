@@ -24,6 +24,7 @@ import {
   EMPLOYEE_TOPBAR_NOTIFICATION_IDS,
   type EmployeeNotifItem,
 } from "../lib/employeeTopbarNotifications";
+import { EMPLOYEE_NOTIFICATION_PREFS_CHANGED } from "../lib/employeeNotificationPreferences";
 import {
   setEmployeeLastAckAppId,
   setOneRead,
@@ -87,9 +88,11 @@ export function Topbar() {
     sync();
     window.addEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
     window.addEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    window.addEventListener(EMPLOYEE_NOTIFICATION_PREFS_CHANGED, sync);
     return () => {
       window.removeEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
       window.removeEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+      window.removeEventListener(EMPLOYEE_NOTIFICATION_PREFS_CHANGED, sync);
     };
   }, []);
 

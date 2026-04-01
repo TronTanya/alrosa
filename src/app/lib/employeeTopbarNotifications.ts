@@ -1,3 +1,4 @@
+import { loadEmployeeNotificationPrefs } from "./employeeNotificationPreferences";
 import {
   getEmployeeLastAckAppId,
   loadNotificationReads,
@@ -65,10 +66,11 @@ function isEmployeeTrainingUnread(apps: ReturnType<typeof readStoredTrainingAppl
 }
 
 export function buildEmployeeTopbarNotifications(): EmployeeNotifItem[] {
+  const prefs = loadEmployeeNotificationPrefs();
   const reads = loadNotificationReads(SITE_NOTIF_READS_EMPLOYEE);
   const apps = readStoredTrainingApplications();
 
-  return EMPLOYEE_NOTIFICATIONS_SEED.map((item) => {
+  const mapped = EMPLOYEE_NOTIFICATIONS_SEED.map((item) => {
     if (item.id === "2") {
       const latest = apps[0];
       const read =
@@ -90,5 +92,11 @@ export function buildEmployeeTopbarNotifications(): EmployeeNotifItem[] {
       ...item,
       read: reads[item.id] !== undefined ? reads[item.id] : item.read,
     };
+  });
+
+  return mapped.filter((item) => {
+    if (!prefs.courses && (item.id === "1" || item.id === "3")) return false;
+    if (!prefs.ipr && item.id === "2") return false;
+    return true;
   });
 }

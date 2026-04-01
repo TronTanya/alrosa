@@ -17,6 +17,7 @@ import { useLocation, useNavigate } from "react-router";
 import { Breadcrumb } from "../Breadcrumb";
 import { AlrosaLogo } from "../AlrosaBrand";
 import { brandIcon, type BrandLucideIcon } from "../../lib/brandIcons";
+import { showAdminToast } from "../../lib/adminToast";
 import {
   hydrateNotificationReads,
   loadNotificationReads,
@@ -42,33 +43,6 @@ const quickActions: {
   { icon: Server, label: "Серверы", variant: "neutral", action: "servers" },
   { icon: RefreshCw, label: "Синхронизация справочников", variant: "accent", action: "sync" },
 ];
-
-function syncDemoToast() {
-  const el = document.createElement("div");
-  el.textContent =
-    "Демо: в продукте здесь пойдёт синхронизация с AD; сейчас действие не выполняется.";
-  Object.assign(el.style, {
-    position: "fixed",
-    bottom: "80px",
-    right: "24px",
-    zIndex: "9999",
-    background: "rgba(0,0,0,0.97)",
-    border: "1px solid rgba(129,208,245,0.35)",
-    color: "#ffffff",
-    borderRadius: "12px",
-    padding: "12px 18px",
-    fontSize: "13px",
-    fontFamily: "var(--font-sans)",
-    fontWeight: "500",
-    maxWidth: "360px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-  });
-  document.body.appendChild(el);
-  setTimeout(() => {
-    el.style.opacity = "0";
-    setTimeout(() => el.remove(), 300);
-  }, 2600);
-}
 
 type AdminNotifIcon = "alert" | "shield" | "server";
 
@@ -180,7 +154,9 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
         navigate("/admin/servers");
         break;
       case "sync":
-        syncDemoToast();
+        showAdminToast(
+          "Демо: в продукте здесь пойдёт синхронизация с AD; сейчас действие не выполняется.",
+        );
         break;
       default:
         break;

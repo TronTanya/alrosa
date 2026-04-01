@@ -94,11 +94,6 @@ export function LoginPage() {
         >
           Войти в портал
         </button>
-        <p className="login-alrosa-hint">
-          Демо-режим: вход без пароля. При настроенном{" "}
-          <code style={{ fontSize: "11px" }}>VITE_YANDEX_OAUTH_CLIENT_ID</code> доступен мгновенный вход Яндекс (Suggest);
-          в кабинете OAuth укажите Redirect URI: <code style={{ fontSize: "10px" }}>{typeof window !== "undefined" ? `${window.location.origin}/yandex-oauth-token` : "/yandex-oauth-token"}</code>
-        </p>
       </motion.div>
     </div>
   );
