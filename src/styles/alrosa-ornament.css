@@ -1,0 +1,141 @@
+/* ALROSA — орнамент из красной линии и пустых кругов (ромбовая сетка ~45°) */
+
+:root {
+  --alrosa-ornament-red: #e3000b;
+  /* Плитка 160×160: линии + контурные круги, поворот как в бренд-паттерне */
+  --alrosa-ornament-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%23e3000b'%3E%3Cg transform='rotate(45 80 80)' stroke-opacity='0.22'%3E%3Ccircle cx='80' cy='28' r='7' stroke-width='1.25'/%3E%3Ccircle cx='132' cy='80' r='7' stroke-width='1.25'/%3E%3Ccircle cx='80' cy='132' r='7' stroke-width='1.25'/%3E%3Ccircle cx='28' cy='80' r='7' stroke-width='1.25'/%3E%3Cpolygon points='80,35 125,80 80,125 35,80' stroke-width='0.95'/%3E%3Cline x1='55' y1='80' x2='105' y2='80' stroke-width='0.8' stroke-opacity='0.85'/%3E%3Cline x1='80' y1='55' x2='80' y2='105' stroke-width='0.8' stroke-opacity='0.85'/%3E%3Ccircle cx='55' cy='80' r='2.4' stroke-width='1'/%3E%3Ccircle cx='105' cy='80' r='2.4' stroke-width='1'/%3E%3Ccircle cx='80' cy='55' r='2.4' stroke-width='1'/%3E%3Ccircle cx='80' cy='105' r='2.4' stroke-width='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Все вкладки ЛК сотрудника: фон-паттерн + красная линия сверху */
+.employee-tab-ornament {
+  position: relative;
+  isolation: isolate;
+  /* 1 0 auto + min-height: min-content — блок растёт вместе с контентом, иначе main не поднимает scrollHeight и страница «не едет» вниз */
+  flex: 1 0 auto;
+  min-height: min-content;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin: -4px -6px 0;
+  padding: 4px 6px 0;
+}
+
+.employee-tab-ornament::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: var(--alrosa-ornament-red);
+  border-radius: 0 0 2px 2px;
+  opacity: 0.92;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.employee-tab-ornament::after {
+  content: "";
+  position: absolute;
+  inset: 3px -8px 0 -8px;
+  background-image: var(--alrosa-ornament-tile);
+  background-size: 160px 160px;
+  background-repeat: repeat;
+  opacity: 0.14;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.employee-tab-ornament__inner {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Тёмный фон страницы (админка): чуть тише сетка */
+.employee-tab-ornament--dark-page::after {
+  opacity: 0.09;
+}
+
+/* Карточка чата: красная «книжная» полоса + угол с орнаментом */
+.cabinet-chat-shell {
+  position: relative;
+  border-left: 3px solid var(--alrosa-ornament-red) !important;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.06),
+    inset 3px 0 0 rgba(227, 0, 11, 0.04);
+  overflow: hidden;
+}
+
+.cabinet-chat-shell::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: min(240px, 55vw);
+  height: min(240px, 55vw);
+  background-image: var(--alrosa-ornament-tile);
+  background-size: 100px 100px;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cabinet-chat-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cabinet-chat-header-ornament {
+  position: relative;
+  overflow: hidden;
+}
+
+.cabinet-chat-header-ornament::after {
+  content: "";
+  position: absolute;
+  bottom: -28px;
+  left: -20px;
+  width: 160px;
+  height: 160px;
+  background-image: var(--alrosa-ornament-tile);
+  background-size: 72px 72px;
+  opacity: 0.11;
+  pointer-events: none;
+}
+
+/* Блок плана развития на той же странице */
+.cabinet-idp-ornament {
+  position: relative;
+  border-top: 3px solid var(--alrosa-ornament-red);
+  overflow: hidden;
+}
+
+.cabinet-idp-ornament::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: min(320px, 70%);
+  height: min(180px, 40%);
+  background-image: var(--alrosa-ornament-tile);
+  background-size: 88px 88px;
+  background-position: bottom left;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cabinet-idp-ornament > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Левая колонка: красная линия у первой карточки (приветствие) */
+.cabinet-left-column .glass-card:first-of-type {
+  border-left: 3px solid rgba(227, 0, 11, 0.88);
+}

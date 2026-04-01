@@ -1,0 +1,33 @@
+/**
+ * ALROSA IT — основная цветовая гамма (логотип и носители стиля)
+ *
+ * Чёрный:   #000000  ·  C0 M0 Y0 K100  ·  R0 G0 B0
+ * Красный:  #e3000b  ·  C0 M100 Y100 K0  ·  R227 G0 B11
+ * Голубой:  #81d0f5  ·  C50 M0 Y0 K0  ·  R129 G208 B245
+ *
+ * На цветных фонах — схема логотипа с максимальным контрастом к фону.
+ * Типографика: fonts.css (Avenir Next Cyrillic, Times New Roman Italic).
+ */
+
+:root {
+  --br-black: #000000;
+  --br-red: #e3000b;
+  --br-cyan: #81d0f5;
+  --app-bg: #ffffff;
+  --app-surface: #ffffff;
+  --app-text: #000000;
+  --app-text-muted: #000000;
+  --app-text-dim: #000000;
+  --app-border: rgba(0, 0, 0, 0.1);
+  --app-border-strong: rgba(129, 208, 245, 0.45);
+  --app-hover: rgba(0, 0, 0, 0.05);
+  --app-shadow: rgba(0, 0, 0, 0.08);
+
+  /* Иконки: линейная графика, зазор ≈ толщине линии */
+  --icon-stroke: #000000;
+  --icon-accent-red: #e3000b;
+  --icon-accent-cyan: #81d0f5;
+  --icon-stroke-width: 1.75;
+  --icon-stroke-width-sm: 1.5;
+  --icon-stroke-width-lg: 2;
+}

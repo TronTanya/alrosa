@@ -1,0 +1,441 @@
+/* ALROSA IT — лендинг / главная (brand book) */
+
+.landing-alrosa {
+  --al-black: #000000;
+  --al-red: #e3000b;
+  --al-cyan: #81d0f5;
+  --al-text: rgba(0, 0, 0, 0.88);
+  --al-muted: rgba(0, 0, 0, 0.52);
+  --al-dim: rgba(0, 0, 0, 0.35);
+  position: relative;
+  margin: -8px -8px 0;
+  padding: 8px 8px 32px;
+  font-family: var(--font-sans);
+  color: var(--al-text);
+  background: #ffffff;
+  border-radius: 2px;
+}
+
+.landing-alrosa__network {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.14;
+  z-index: 0;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(227, 0, 11, 0.35) 1px, transparent 1.5px),
+    radial-gradient(circle at 1px 1px, rgba(129, 208, 245, 0.22) 1px, transparent 1.5px),
+    linear-gradient(90deg, rgba(227, 0, 11, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(129, 208, 245, 0.04) 1px, transparent 1px);
+  background-size: 96px 96px, 96px 96px, 56px 56px, 56px 56px;
+  background-position: 0 0, 28px 28px, 0 0, 0 0;
+}
+
+.landing-alrosa__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vw, 28px);
+}
+
+/* Логотип — защитное поле */
+.alrosa-logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  padding: clamp(10px, 1.5vw, 18px) clamp(12px, 2vw, 22px);
+  margin: -10px 0 0 -12px;
+}
+
+.alrosa-logo-wrap .alrosa-logo-img {
+  display: block;
+  height: auto;
+  width: auto;
+}
+
+.alrosa-logo-img--lockup {
+  max-height: clamp(36px, 6vw, 48px);
+  max-width: min(320px, 100%);
+}
+
+/* Векторный wordmark */
+.alrosa-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28em;
+  max-width: min(320px, 100%);
+  font-family: var(--font-sans);
+  line-height: 1;
+  --alrosa-wordmark-hole: #ffffff;
+}
+
+.alrosa-wordmark__alrosa {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: clamp(15px, 2.6vw, 22px);
+  letter-spacing: 0.06em;
+  color: #000000;
+}
+
+.alrosa-wordmark__it {
+  flex-shrink: 0;
+  font-weight: 500;
+  font-size: clamp(15px, 2.6vw, 22px);
+  letter-spacing: 0.12em;
+  color: #81d0f5;
+}
+
+.alrosa-wordmark__connector {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  min-width: clamp(28px, 12vw, 96px);
+  gap: 0;
+}
+
+.alrosa-wordmark__ring-svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.alrosa-wordmark__rule {
+  flex: 1 1 auto;
+  height: 1.5px;
+  min-width: 6px;
+  background: #e3000b;
+  border-radius: 1px;
+}
+
+/* Красная линия с кругами */
+.brand-line {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+}
+
+.brand-line--wide {
+  max-width: min(720px, 100%);
+}
+
+.brand-line--medium {
+  max-width: min(420px, 100%);
+}
+
+.brand-line--short {
+  max-width: 160px;
+}
+
+.brand-line__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--al-red);
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(227, 0, 11, 0.5);
+}
+
+.brand-line__bar {
+  flex: 1;
+  height: 2px;
+  min-width: 32px;
+  background: linear-gradient(90deg, var(--al-red), rgba(227, 0, 11, 0.25));
+}
+
+.brand-line--cyan .brand-line__dot {
+  background: var(--al-cyan);
+  box-shadow: 0 0 12px rgba(129, 208, 245, 0.45);
+}
+
+.brand-line--cyan .brand-line__bar {
+  background: linear-gradient(90deg, var(--al-cyan), rgba(129, 208, 245, 0.2));
+}
+
+/* Hero */
+.landing-hero__accent {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  color: #000000;
+  margin: 0 0 4px;
+  line-height: 1.45;
+  max-width: 36em;
+}
+
+.landing-hero__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 16px;
+}
+
+.landing-hero__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.landing-h1 {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: clamp(1.35rem, 2.8vw, 1.65rem);
+  font-weight: var(--br-font-bold);
+  letter-spacing: -0.03em;
+  color: #000000;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.landing-lead {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--al-muted);
+  margin: 10px 0 0;
+  line-height: 1.55;
+  max-width: 52em;
+}
+
+.landing-lead .landing-hero__accent {
+  font-size: inherit;
+  line-height: inherit;
+  color: #000000;
+}
+
+/* Сетка метрик */
+.landing-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.landing-metric-card {
+  position: relative;
+  padding: 18px 16px;
+  border-radius: 2px;
+  background: #fafafa;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  overflow: hidden;
+}
+
+.landing-metric-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--al-red), transparent);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transform-origin: left;
+  transition: opacity 0.25s, transform 0.3s ease;
+}
+
+.landing-metric-card:hover {
+  border-color: rgba(227, 0, 11, 0.35);
+  background: rgba(227, 0, 11, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(227, 0, 11, 0.08);
+}
+
+.landing-metric-card:hover::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.landing-metric-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 2px;
+  border: 1px solid rgba(129, 208, 245, 0.35);
+  background: rgba(129, 208, 245, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-metric-card__label {
+  font-size: 12px;
+  color: #000000;
+}
+
+.landing-metric-card__value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #000000;
+  letter-spacing: -0.5px;
+  margin-top: 2px;
+}
+
+.landing-metric-card__sub {
+  font-size: 11px;
+  color: #000000;
+  margin-top: 4px;
+}
+
+/* CTA */
+.landing-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 2px;
+  border: 1px solid rgba(227, 0, 11, 0.28);
+  background: linear-gradient(135deg, rgba(227, 0, 11, 0.08), rgba(129, 208, 245, 0.05));
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-cta::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--al-red), var(--al-cyan));
+  opacity: 0.5;
+  transform: scaleX(0.35);
+  transform-origin: left;
+  transition: transform 0.35s ease, opacity 0.25s;
+}
+
+.landing-cta:hover {
+  border-color: rgba(227, 0, 11, 0.45);
+  box-shadow: 0 0 40px rgba(227, 0, 11, 0.12);
+}
+
+.landing-cta:hover::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.landing-cta__icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 2px;
+  border: 1px solid rgba(129, 208, 245, 0.35);
+  background: linear-gradient(135deg, rgba(227, 0, 11, 0.35), rgba(129, 208, 245, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.landing-cta__title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #000000;
+  margin-bottom: 4px;
+}
+
+.landing-cta__desc {
+  font-size: 13px;
+  color: #000000;
+  line-height: 1.45;
+}
+
+/* Страница входа */
+.login-alrosa {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #ffffff;
+  font-family: var(--font-sans);
+}
+
+.login-alrosa .landing-alrosa__network {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.14;
+  border-radius: 0;
+}
+
+.login-alrosa-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  padding: 36px 32px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
+}
+
+.login-alrosa-panel .alrosa-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 8px;
+}
+
+.login-alrosa-panel .brand-line {
+  margin-bottom: 20px;
+}
+
+.login-alrosa-title {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: var(--br-font-bold);
+  color: #000000;
+  text-align: center;
+  margin: 0 0 8px;
+  letter-spacing: -0.4px;
+}
+
+.login-alrosa-lead {
+  font-size: 13px;
+  color: #000000;
+  text-align: center;
+  margin: 0 0 28px;
+  line-height: 1.55;
+}
+
+.login-alrosa-lead--accent {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  color: #000000;
+}
+
+.login-alrosa-btn {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 2px;
+  border: 1px solid rgba(227, 0, 11, 0.45);
+  background: linear-gradient(135deg, rgba(227, 0, 11, 0.12), rgba(129, 208, 245, 0.15));
+  color: #000000;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-alrosa-btn:hover {
+  border-color: rgba(227, 0, 11, 0.6);
+  box-shadow: 0 0 32px rgba(227, 0, 11, 0.15);
+}
+
+.login-alrosa-hint {
+  font-size: 11px;
+  color: #000000;
+  text-align: center;
+  margin-top: 20px;
+  line-height: 1.5;
+}

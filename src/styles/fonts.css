@@ -1,0 +1,70 @@
+/**
+ * ALROSA IT — типографика (фирменный стандарт)
+ *
+ * Основная гарнитура: Avenir Next Cyrillic — начертания Light, Regular, Demi, Bold.
+ * При отсутствии технической возможности: Arial Regular (и родственные начертания в том же стеке).
+ * Акциденция и отдельные заголовки: Times New Roman Italic.
+ *
+ * Палитра текста: #000000. Акценты бренда: #e3000b, #81d0f5 (см. brand-palette.css).
+ * Внешние веб-шрифты не подключаем — используются системные начертания.
+ */
+
+:root {
+  --font-sans: "Avenir Next Cyrillic", "Avenir Next", Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --font-accent: "Times New Roman", Times, "Liberation Serif", serif;
+  --br-font-light: 300;
+  --br-font-regular: 400;
+  --br-font-demi: 600;
+  --br-font-bold: 700;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Крупные интерфейсные заголовки — чёткий sans (как wordmark «АЛРОСА») */
+.type-display {
+  font-family: var(--font-sans);
+  font-weight: var(--br-font-bold);
+  font-style: normal;
+  letter-spacing: -0.02em;
+}
+
+/* Акциденция / подзаголовки курсивом по гайду (Times New Roman Italic) */
+.type-accent-italic {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: var(--br-font-regular);
+}
+
+/* Заголовок акциденцией по гайду — при необходимости на маркетинговых блоках */
+.type-heading-accent {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: var(--br-font-regular);
+  line-height: 1.3;
+}
+
+/* Явные начертания Avenir Next (числовые веса для fallback Arial) */
+.font-br-light {
+  font-family: var(--font-sans);
+  font-weight: var(--br-font-light);
+  font-style: normal;
+}
+.font-br-regular {
+  font-family: var(--font-sans);
+  font-weight: var(--br-font-regular);
+  font-style: normal;
+}
+.font-br-demi {
+  font-family: var(--font-sans);
+  font-weight: var(--br-font-demi);
+  font-style: normal;
+}
+.font-br-bold {
+  font-family: var(--font-sans);
+  font-weight: var(--br-font-bold);
+  font-style: normal;
+}
