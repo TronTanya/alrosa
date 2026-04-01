@@ -31,7 +31,7 @@ export const MANAGER_TOPBAR_NOTIFICATIONS_INITIAL: ManagerTopbarNotifItem[] = [
     time: "1 ч назад",
     read: false,
     icon: "calendar",
-    to: ROUTE_PATHS.employeeCalendar,
+    to: ROUTE_PATHS.managerCalendar,
   },
   {
     id: "3",
@@ -58,6 +58,6 @@ export const MANAGER_TOPBAR_NOTIFICATIONS_INITIAL: ManagerTopbarNotifItem[] = [
     time: "Вчера",
     read: false,
     icon: "doc",
-    to: "/manager/analytics",
+    to: ROUTE_PATHS.managerReports,
   },
 ];

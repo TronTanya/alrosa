@@ -1,12 +1,11 @@
-import { ROUTE_PATHS } from "../routePaths";
-
 /** localStorage: grant после Nylas Hosted OAuth */
 export const NYLAS_GRANT_STORAGE_KEY = "nylas_grant_id";
 
-/** Канонический callback без лишних слэшей — должен совпадать с URI в Nylas Dashboard. */
+/** Callback для текущей страницы — должен быть добавлен в Nylas Dashboard для каждого пути (например /employee/calendar и /manager/calendar). */
 export function getNylasOAuthRedirectUri(): string {
   if (typeof window === "undefined") return "";
-  return new URL(ROUTE_PATHS.employeeCalendar, window.location.origin).href;
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
+  return new URL(path, window.location.origin).href;
 }
 
 /** Пусто = тот же origin (Vite proxy /nylas → localhost:8000). Иначе полный URL бэкенда, например http://localhost:8000 */

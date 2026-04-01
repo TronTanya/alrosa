@@ -1,7 +1,7 @@
 import { createBrowserRouter, redirect } from "react-router";
 /**
  * ЛК — EmployeeShell (+ /my-team «Команда» для сотрудника).
- * Руководитель — ManagerShell: /manager, /manager/analytics, /manager/mentor, /manager/courses, /manager/competencies; /team → редирект на /manager.
+ * Руководитель — ManagerShell: /manager, …, /manager/calendar, /manager/reports, /manager/achievements, /manager/competencies; /team → редирект на /manager.
  */
 import { RequireAuth } from "./RequireAuth";
 import { Root } from "./Root";
@@ -20,6 +20,8 @@ import { ManagerAnalyticsPage } from "./pages/ManagerAnalyticsPage";
 import { ManagerAIMentorPage } from "./pages/ManagerAIMentorPage";
 import { ManagerCoursesPage } from "./pages/ManagerCoursesPage";
 import { ManagerCompetenciesPage } from "./pages/ManagerCompetenciesPage";
+import { ManagerReportsPage } from "./pages/ManagerReportsPage";
+import { ManagerAchievementsPage } from "./pages/ManagerAchievementsPage";
 import { EmployeeTeamPage } from "./pages/EmployeeTeamPage";
 import { RedirectTeamToManager } from "./components/routing/RedirectTeamToManager";
 import { SupportPage } from "./pages/SupportPage";
@@ -75,6 +77,9 @@ export const router = createBrowserRouter([
               { path: "mentor", Component: ManagerAIMentorPage },
               { path: "courses", Component: ManagerCoursesPage },
               { path: "competencies", Component: ManagerCompetenciesPage },
+              { path: "calendar", Component: EmployeeCalendarPage },
+              { path: "reports", Component: ManagerReportsPage },
+              { path: "achievements", Component: ManagerAchievementsPage },
             ],
           },
           { path: "team", Component: RedirectTeamToManager },

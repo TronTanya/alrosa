@@ -28,9 +28,9 @@ const navItems: NavEntry[] = [
   { kind: "navlink", icon: BrainCircuit, label: "ИИ-Наставник", badge: null, to: ROUTE_PATHS.managerMentor, end: true },
   { kind: "navlink", icon: BookOpen, label: "Курсы и обучение", badge: "7", to: ROUTE_PATHS.managerCourses, end: true },
   { kind: "navlink", icon: TrendingUp, label: "Компетенции", badge: null, to: ROUTE_PATHS.managerCompetencies, end: true },
-  { kind: "link", icon: Calendar, label: "Календарь", badge: "3", to: ROUTE_PATHS.employeeCalendar },
-  { kind: "link", icon: FileText, label: "Отчёты", badge: null, to: "/idp" },
-  { kind: "link", icon: Award, label: "Достижения", badge: null, to: "/certificates" },
+  { kind: "navlink", icon: Calendar, label: "Календарь", badge: "3", to: ROUTE_PATHS.managerCalendar, end: true },
+  { kind: "navlink", icon: FileText, label: "Отчёты", badge: null, to: ROUTE_PATHS.managerReports, end: true },
+  { kind: "navlink", icon: Award, label: "Достижения", badge: null, to: ROUTE_PATHS.managerAchievements, end: true },
 ];
 
 const bottomItems = [

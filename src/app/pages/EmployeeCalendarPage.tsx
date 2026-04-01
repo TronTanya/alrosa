@@ -41,8 +41,6 @@ import {
   NYLAS_GRANT_STORAGE_KEY,
   readStoredNylasGrant,
 } from "../lib/nylasCalendar";
-import { ROUTE_PATHS } from "../routePaths";
-
 /** Календарь Outlook в браузере (Microsoft 365 / личная учётная запись) */
 export const OUTLOOK_OFFICE_CALENDAR = "https://outlook.office.com/calendar/";
 export const OUTLOOK_LIVE_CALENDAR = "https://outlook.live.com/calendar/0/";
@@ -85,7 +83,7 @@ export function EmployeeCalendarPage() {
   const [nylasEventsLoading, setNylasEventsLoading] = useState(false);
   const [nylasReloadTick, setNylasReloadTick] = useState(0);
   const oauthCode = searchParams.get("code");
-  /** Ответ Azure AD после MSAL (не путать с OAuth-кодом Nylas на том же пути /employee/calendar). */
+  /** Ответ Azure AD после MSAL (не путать с OAuth-кодом Nylas на том же пути календаря). */
   const oauthSessionState = searchParams.get("session_state");
   const oauthErr = searchParams.get("error");
   const oauthErrDesc = searchParams.get("error_description");
@@ -193,7 +191,7 @@ export function EmployeeCalendarPage() {
           } catch {
             /* ignore */
           }
-          await outlookLoginRedirect(ROUTE_PATHS.employeeCalendar);
+          await outlookLoginRedirect();
           return;
         }
         if (cancelled) return;
@@ -768,7 +766,7 @@ export function EmployeeCalendarPage() {
                       } catch {
                         /* ignore */
                       }
-                      await outlookLoginRedirect(ROUTE_PATHS.employeeCalendar);
+                      await outlookLoginRedirect();
                     } catch (e) {
                       setGraphError(e instanceof Error ? e.message : "Не удалось начать вход");
                     }
@@ -821,7 +819,7 @@ export function EmployeeCalendarPage() {
             </div>
             <p style={{ fontSize: "11px", color: "#000000", margin: "0 0 10px", lineHeight: 1.5 }}>
               Альтернатива прямому входу Microsoft: бэкенд с Nylas v3. Callback URI в дашборде Nylas:{" "}
-              <code style={{ fontSize: "10px" }}>{typeof window !== "undefined" ? getNylasOAuthRedirectUri() : ROUTE_PATHS.employeeCalendar}</code>.
+              <code style={{ fontSize: "10px" }}>{getNylasOAuthRedirectUri()}</code>.
               Запуск: <code style={{ fontSize: "10px" }}>npm run backend:nylas</code> и переменные в <code style={{ fontSize: "10px" }}>backend/.env</code>.
             </p>
             {nylasError ? (

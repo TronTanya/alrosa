@@ -69,6 +69,21 @@ const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
     { label: "Руководитель", path: "/manager" },
     { label: "Компетенции" },
   ],
+  "/manager/calendar": [
+    { label: "Алроса ИТ", path: "/", icon: Home },
+    { label: "Руководитель", path: "/manager" },
+    { label: "Календарь" },
+  ],
+  "/manager/reports": [
+    { label: "Алроса ИТ", path: "/", icon: Home },
+    { label: "Руководитель", path: "/manager" },
+    { label: "Отчёты" },
+  ],
+  "/manager/achievements": [
+    { label: "Алроса ИТ", path: "/", icon: Home },
+    { label: "Руководитель", path: "/manager" },
+    { label: "Достижения" },
+  ],
   "/team": [
     { label: "Алроса ИТ", path: "/", icon: Home },
     { label: "Руководитель" },
@@ -233,6 +248,9 @@ const ACCENT_MAP: Record<string, string> = {
   "/manager/mentor": "#81d0f5",
   "/manager/courses": "#81d0f5",
   "/manager/competencies": "#81d0f5",
+  "/manager/calendar": "#81d0f5",
+  "/manager/reports": "#81d0f5",
+  "/manager/achievements": "#81d0f5",
   "/team": "#81d0f5",
   "/support": "#81d0f5",
   "/settings": "#81d0f5",

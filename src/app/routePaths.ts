@@ -20,6 +20,12 @@ export const ROUTE_PATHS = {
   managerCourses: "/manager/courses",
   /** Руководитель: компетенции команды */
   managerCompetencies: "/manager/competencies",
+  /** Руководитель: календарь (отдельно от календаря сотрудника /employee/calendar) */
+  managerCalendar: "/manager/calendar",
+  /** Руководитель: отчёты по команде */
+  managerReports: "/manager/reports",
+  /** Руководитель: достижения и сертификаты команды (сводка) */
+  managerAchievements: "/manager/achievements",
   /** Устаревший URL → редирект на ROUTE_PATHS.manager */
   teamLegacy: "/team",
   hr: "/hr",

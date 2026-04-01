@@ -1,5 +1,6 @@
 """
-Nylas v3 Hosted OAuth (Outlook / Microsoft). Callback на фронте: /employee/calendar?code=...
+Nylas v3 Hosted OAuth (Outlook / Microsoft). Callback на фронте: /employee/calendar или
+/manager/calendar (redirect_uri должен совпадать с зарегистрированным в Nylas Dashboard).
 Обмен code → grant_id через POST /nylas/exchange.
 """
 
