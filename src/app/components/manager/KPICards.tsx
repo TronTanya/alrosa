@@ -18,7 +18,7 @@ function CircRing({ value, color, size = 64 }: { value: number; color: string; s
           style={{ filter: `drop-shadow(0 0 4px ${color}66)` }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-        <span style={{ fontSize: "13px", fontWeight: "600", color: "#000000", lineHeight: 1 }}>{value}</span>
+        <span style={{ fontSize: "13px", fontWeight: 400, color: "#000000", lineHeight: 1 }}>{value}</span>
         <span style={{ fontSize: "8px", color: "rgba(0,0,0,0.45)", lineHeight: 1 }}>%</span>
       </div>
     </div>
@@ -94,22 +94,22 @@ export function KPICards() {
             <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: `${k.accent}18`, border: `1px solid ${k.accent}35`, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <k.icon size={16} style={{ color: k.accent }} />
             </div>
-            <span style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", fontWeight: "500", lineHeight: 1.3 }}>{k.label}</span>
+            <span style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", fontWeight: 400, lineHeight: 1.3 }}>{k.label}</span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
             <div>
               {k.type === "badge" ? (
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                  <div style={{ fontSize: "36px", fontWeight: "900", color: k.badgeColor, lineHeight: 1, letterSpacing: "-1px" }}>
+                  <div style={{ fontSize: "36px", fontWeight: 400, color: k.badgeColor, lineHeight: 1, letterSpacing: "-0.5px" }}>
                     {k.value}
                   </div>
-                  <div style={{ padding: "5px 12px", borderRadius: "20px", background: "rgba(227,0,11,0.1)", border: "1px solid rgba(227,0,11,0.28)", fontSize: "11px", fontWeight: "500", color: brandIcon.accentRed }}>
+                  <div style={{ padding: "5px 12px", borderRadius: "20px", background: "rgba(227,0,11,0.1)", border: "1px solid rgba(227,0,11,0.28)", fontSize: "11px", fontWeight: 400, color: brandIcon.accentRed }}>
                     7 сотрудников
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: "36px", fontWeight: "900", color: "#000000", lineHeight: 1, letterSpacing: "-1px" }}>
+                <div style={{ fontSize: "36px", fontWeight: 400, color: "#000000", lineHeight: 1, letterSpacing: "-0.5px" }}>
                   {k.value}
                 </div>
               )}
@@ -125,7 +125,7 @@ export function KPICards() {
             )}
           </div>
 
-          <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: k.trendUp === false ? brandIcon.accentRed : k.trendUp ? brandIcon.accentCyan : "rgba(0,0,0,0.45)", fontWeight: "500" }}>
+          <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: k.trendUp === false ? brandIcon.accentRed : k.trendUp ? brandIcon.accentCyan : "rgba(0,0,0,0.45)", fontWeight: 400 }}>
             {k.trend}
           </div>
         </div>

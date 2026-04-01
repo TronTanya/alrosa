@@ -1,0 +1,20 @@
+# Локальный PostgreSQL для backend (FastAPI). Запуск: docker compose up -d postgres
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: alrosa
+      POSTGRES_PASSWORD: alrosa
+      POSTGRES_DB: alrosa
+    ports:
+      - "5432:5432"
+    volumes:
+      - alrosa_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alrosa -d alrosa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  alrosa_pgdata:

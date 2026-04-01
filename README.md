@@ -14,6 +14,7 @@
 - [Роли и маршруты](#роли-и-маршруты)
 - [Схема работы прототипа (user flow)](#схема-работы-прототипа-user-flow)
 - [Запуск](#запуск)
+- [Backend и PostgreSQL](#backend-и-postgresql)
 - [Переменные окружения](#переменные-окружения)
 - [Использование ИИ](#использование-ии)
 - [Галерея скриншотов](#галерея-скриншотов)
@@ -122,7 +123,7 @@
 - **Сборка:** [Vite](https://vitejs.dev/) 6
 - **UI:** React **18**, [React Router](https://reactrouter.com/) 7, [Motion](https://motion.dev/) (анимации), [Tailwind CSS](https://tailwindcss.com/) 4, часть компонентов **Radix UI** и **MUI**
 - **Язык:** TypeScript
-- **Опционально:** backend Python (`backend/`) — Uvicorn, прокси OAuth для календаря (локальный запуск — см. скрипты в `package.json`)
+- **Опционально:** backend Python (`backend/`) — FastAPI, Uvicorn, PostgreSQL (async SQLAlchemy + asyncpg), прокси OAuth Nylas для календаря (см. [Backend и PostgreSQL](#backend-и-postgresql), скрипт `npm run backend:nylas`)
 - **Прочее:** ESLint, `sonner` (тосты), `next-themes` (тема для Toaster), локализация строк (русский / английский) через контекст приложения
 
 ---
@@ -226,12 +227,70 @@ npm run lint
 
 ---
 
+## Backend и PostgreSQL
+
+Клиентское приложение (Vite/React) **не подключается к базе напрямую**. Работа с данными в БД предполагается через **HTTP API** опционального backend на **FastAPI** в каталоге [`backend/`](backend/).
+
+Подключение к **PostgreSQL** реализовано в коде как **SQLAlchemy 2 (async)** + драйвер **asyncpg** (`backend/app/db.py`). Строка подключения — переменная **`DATABASE_URL`** (форматы `postgresql://` и `postgres://` поддерживаются, внутри преобразуются в `postgresql+asyncpg://`).
+
+### Локальный PostgreSQL (Docker)
+
+В корне репозитория — [`docker-compose.yml`](docker-compose.yml): сервис `postgres` (образ `postgres:16-alpine`, порт **5432**, пользователь / пароль / БД **`alrosa`**).
+
+```bash
+docker compose up -d postgres
+```
+
+Дождитесь готовности контейнера (healthcheck в compose). Остановка: `docker compose down` (данные в volume `alrosa_pgdata` сохраняются).
+
+### Переменная `DATABASE_URL`
+
+Задайте в **`.env` в корне проекта** или в **`backend/.env`** (шаблоны: [`.env.example`](.env.example), [`backend/.env.example`](backend/.env.example)). При запуске uvicorn загружаются оба файла; **значения из корневого `.env` перекрывают** `backend/.env`.
+
+Пример для локального compose:
+
+```env
+DATABASE_URL=postgresql://alrosa:alrosa@127.0.0.1:5432/alrosa
+```
+
+Если `DATABASE_URL` не задан, эндпоинт проверки БД вернёт `connected: false` без падения процесса.
+
+### Установка зависимостей и запуск API
+
+```bash
+cd backend
+python3 -m pip install -r requirements.txt
+cd ..
+npm run backend:nylas
+```
+
+По умолчанию слушает **http://127.0.0.1:8000** (Uvicorn, см. [`package.json`](package.json), скрипт `backend:nylas`). Рекомендуется отдельный venv в `backend/.venv` в продакшене; для краткости в документации используется системный `pip`.
+
+### Проверка работоспособности
+
+| Метод | URL | Назначение |
+|--------|-----|------------|
+| GET | `http://127.0.0.1:8000/health` | Сервис запущен. |
+| GET | `http://127.0.0.1:8000/health/db` | Ответ JSON: `connected` / `detail` — соединение с Postgres (`SELECT 1`). |
+
+Пример: `curl -s http://127.0.0.1:8000/health/db`
+
+Помимо этого, в приложении подключён роутер **Nylas** (`/nylas/...`) для OAuth календаря — см. `backend/app/routers/nylas.py`.
+
+### Расширение
+
+- Зависимость **`get_db()`** в `backend/app/db.py` — для новых маршрутов FastAPI с доступом к сессии БД.
+- Миграции схемы (Alembic и т.п.) в репозитории **не настроены** — при появлении таблиц их стоит добавить отдельно.
+
+---
+
 ## Переменные окружения
 
 Шаблон — **`.env.example`** в корне проекта. Типичные группы:
 
 - **Яндекс OAuth** — для сценариев с Яндекс.Календарём / API (префикс `VITE_` для публичных ключей клиента); обмен кодов и календарь — также через `backend/` при необходимости.
 - **Яндекс Cloud / GPT** — при использовании HR-ИИ (см. комментарии в `.env.example`).
+- **PostgreSQL** — **`DATABASE_URL`** для backend; подробно в разделе [Backend и PostgreSQL](#backend-и-postgresql).
 
 Секреты не коммитьте; для продакшена используйте переменные окружения хостинга.
 
