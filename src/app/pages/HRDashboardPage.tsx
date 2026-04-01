@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { HRKPICards } from "../components/hr/HRKPICards";
 import { LearningAnalyticsChart } from "../components/hr/LearningAnalyticsChart";
 import { DepartmentHeatmap } from "../components/hr/DepartmentHeatmap";
 import { HRAIPanel } from "../components/hr/HRAIPanel";
+import { HR_LD_SECTION_LABEL } from "../lib/hrLdLabels";
 import { ApplicationsTable } from "../components/hr/ApplicationsTable";
+import { getHrDashboardMetrics } from "../lib/hrDashboardMetrics";
+import { useHrDataRevision } from "../hooks/useHrDataRevision";
 
 export function HRDashboardPage() {
+  const dataRev = useHrDataRevision();
+  const headerLine = useMemo(() => {
+    void dataRev;
+    const m = getHrDashboardMetrics();
+    const d = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+    return `Корпоративный университет · ${m.totalEmployees} сотрудников · заявок в очереди: ${m.pendingApplications} · ${d}`;
+  }, [dataRev]);
+
   return (
     <div className="employee-tab-ornament">
       <div className="employee-tab-ornament__inner">
@@ -31,7 +42,7 @@ export function HRDashboardPage() {
                 margin: 0,
               }}
             >
-              Дашборд HR / L&D ·{" "}
+              Дашборд {HR_LD_SECTION_LABEL} ·{" "}
               <span className="type-heading-accent" style={{ fontSize: "1.02em" }}>
                 ИИ-Наставник Развития
               </span>
@@ -46,7 +57,7 @@ export function HRDashboardPage() {
                 background: "linear-gradient(135deg,rgba(227,0,11,.2),rgba(129,208,245,.12))",
                 border: "1px solid rgba(129,208,245,.28)",
                 fontSize: "11px",
-                fontWeight: "600",
+                fontWeight: "500",
                 color: "#000000",
               }}
             >
@@ -63,9 +74,7 @@ export function HRDashboardPage() {
               ИИ Активен
             </div>
           </div>
-          <p style={{ fontSize: "13px", color: "#000000", margin: 0, marginLeft: "14px" }}>
-            Корпоративный университет · 312 сотрудников · Мониторинг в реальном времени · 30 марта 2026
-          </p>
+          <p style={{ fontSize: "13px", color: "#000000", margin: 0, marginLeft: "14px" }}>{headerLine}</p>
         </div>
 
         <div style={{ marginBottom: "20px" }}>

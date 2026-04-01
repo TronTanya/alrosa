@@ -34,7 +34,7 @@ function Section({
       <div
         style={{
           fontSize: "10px",
-          fontWeight: "700",
+          fontWeight: "500",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           color: "#000000",
@@ -85,7 +85,7 @@ function Section({
             <Icon size={14} color={brandIcon.stroke} strokeWidth={brandIcon.swSm} />
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: "13px", fontWeight: "700", lineHeight: 1.35 }}>{hit.title}</div>
+            <div style={{ fontSize: "13px", fontWeight: "500", lineHeight: 1.35 }}>{hit.title}</div>
             <div style={{ fontSize: "11px", color: "#000000", marginTop: "3px", lineHeight: 1.35 }}>
               {hit.subtitle}
             </div>
@@ -304,7 +304,7 @@ export function EmployeeGlobalSearch() {
                     borderBottom: "1px solid rgba(0,0,0,0.06)",
                   }}
                 >
-                  DeepSeek анализирует запрос…
+                  Алиса анализирует запрос…
                 </div>
               )}
               {aiBlock?.summary ? (
@@ -320,7 +320,7 @@ export function EmployeeGlobalSearch() {
                 </div>
               ) : null}
               {aiBlock && aiBlock.hits.length > 0 ? (
-                <Section label="Подбор DeepSeek" icon={Bot} items={aiBlock.hits} onPick={pick} />
+                <Section label="Подбор Алисы" icon={Bot} items={aiBlock.hits} onPick={pick} />
               ) : null}
               {hasLocal ? (
                 <>
@@ -328,7 +328,7 @@ export function EmployeeGlobalSearch() {
                     <div
                       style={{
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         letterSpacing: "0.08em",
                         textTransform: "uppercase",
                         color: "#000000",

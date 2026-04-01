@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import { CheckCircle, Clock, BookOpen, Award, Target, Cpu, Brain, TrendingUp } from "lucide-react";
-import { brandIcon } from "../lib/brandIcons";
+import { brandIcon, type BrandLucideIcon } from "../lib/brandIcons";
 import { buildIprTimelinePdfHtml, openPrintableReport } from "../lib/pdfExport";
+import { submitTrainingApplication } from "../lib/trainingApplicationsStorage";
+import { ROUTE_PATHS } from "../routePaths";
 
 interface TimelineStep {
   id: number;
@@ -10,7 +13,7 @@ interface TimelineStep {
   title: string;
   description: string;
   status: "done" | "in-progress" | "planned";
-  icon: React.ComponentType<{ size?: number }>;
+  icon: BrandLucideIcon;
   color: string;
   modules: string[];
   hours: number;
@@ -26,7 +29,7 @@ const steps: TimelineStep[] = [
     status: "in-progress",
     icon: Brain,
     color: "#e3000b",
-    modules: ["Python Advanced", "Pandas & NumPy", "Scikit-learn"],
+    modules: ["Продвинутый Python", "Pandas и NumPy", "Scikit-learn"],
     hours: 40,
   },
   {
@@ -38,7 +41,7 @@ const steps: TimelineStep[] = [
     status: "planned",
     icon: Cpu,
     color: "#81d0f5",
-    modules: ["Clean Architecture", "Event-Driven", "API Design"],
+    modules: ["Чистая архитектура", "Событийная модель", "Проектирование API"],
     hours: 24,
   },
   {
@@ -46,11 +49,11 @@ const steps: TimelineStep[] = [
     period: "Июнь 2026",
     dates: "1–30 июн",
     title: "Облачные сервисы",
-    description: "AWS Professional",
+    description: "Сертификация AWS (Professional)",
     status: "planned",
     icon: TrendingUp,
     color: "#e3000b",
-    modules: ["EC2 / S3", "Lambda / SQS", "CloudFormation"],
+    modules: ["EC2 и S3", "Lambda и SQS", "CloudFormation"],
     hours: 80,
   },
   {
@@ -62,7 +65,7 @@ const steps: TimelineStep[] = [
     status: "planned",
     icon: Target,
     color: "#81d0f5",
-    modules: ["Team Lead Skills", "Agile/Scrum", "OKR Framework"],
+    modules: ["Навыки тимлида", "Agile/Scrum", "OKR"],
     hours: 32,
   },
   {
@@ -74,7 +77,7 @@ const steps: TimelineStep[] = [
     status: "planned",
     icon: Award,
     color: "#000000",
-    modules: ["Tech Interview", "360° Feedback", "Портфолио"],
+    modules: ["Техническое интервью", "Обратная связь 360°", "Портфолио"],
     hours: 16,
   },
 ];
@@ -180,7 +183,7 @@ function StepCard({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
           <div
             style={{
               fontSize: "10px",
-              fontWeight: "600",
+              fontWeight: "500",
               color: isActive ? step.color : "#000000",
               letterSpacing: "0.5px",
               marginBottom: "4px",
@@ -193,7 +196,7 @@ function StepCard({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
           <div
             style={{
               fontSize: "13px",
-              fontWeight: "700",
+              fontWeight: "500",
               color: isActive ? "#000000" : "#000000",
               marginBottom: "3px",
               lineHeight: 1.3,
@@ -263,7 +266,7 @@ function StepCard({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
             <div
               style={{
                 fontSize: "10px",
-                fontWeight: "600",
+                fontWeight: "500",
                 padding: "3px 8px",
                 borderRadius: "20px",
                 background:
@@ -294,6 +297,8 @@ function StepCard({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
 }
 
 export function IPDTimeline() {
+  const navigate = useNavigate();
+  const [submitBusy, setSubmitBusy] = useState(false);
   const totalHours = steps.reduce((s, st) => s + st.hours, 0);
 
   const exportPdf = () => {
@@ -311,6 +316,36 @@ export function IPDTimeline() {
       "План развития 2026",
       buildIprTimelinePdfHtml("Александр Иванов", pdfSteps, totalHours, "20% завершено"),
     );
+  };
+
+  const sendForApproval = () => {
+    if (submitBusy) return;
+    setSubmitBusy(true);
+    try {
+      const cabinetUrl =
+        typeof window !== "undefined" ? `${window.location.origin}${ROUTE_PATHS.employeeCabinet}` : ROUTE_PATHS.employeeCabinet;
+      const planTitle = "Индивидуальный план развития (апрель — сентябрь 2026)";
+      const planProvider = "ЕСО · индивидуальный план развития";
+      submitTrainingApplication({
+        title: "ИПР 2026 апр–сен",
+        provider: planProvider,
+        url: cabinetUrl,
+        mentorType: "internal",
+        typeLabelOverride: "ИПР / план развития",
+        listTitle: planTitle,
+      });
+      navigate(ROUTE_PATHS.employeeIdp, {
+        state: {
+          pendingCourseApproval: {
+            title: planTitle,
+            provider: planProvider,
+            url: cabinetUrl,
+          },
+        },
+      });
+    } finally {
+      setSubmitBusy(false);
+    }
   };
 
   return (
@@ -353,7 +388,7 @@ export function IPDTimeline() {
             <h3
               style={{
                 fontSize: "16px",
-                fontWeight: "700",
+                fontWeight: "500",
                 color: "#000000",
                 letterSpacing: "-0.3px",
                 fontFamily: "var(--font-sans)",
@@ -368,7 +403,7 @@ export function IPDTimeline() {
                 background: "linear-gradient(135deg, rgba(227,0,11,0.08), rgba(129,208,245,0.14))",
                 border: "1px solid rgba(129,208,245,0.35)",
                 fontSize: "11px",
-                fontWeight: "600",
+                fontWeight: "500",
                 color: "#000000",
                 fontFamily: "var(--font-sans)",
               }}
@@ -393,7 +428,7 @@ export function IPDTimeline() {
               <div
                 style={{
                   fontSize: "20px",
-                  fontWeight: "800",
+                  fontWeight: "600",
                   background: "linear-gradient(135deg, #000000, #e3000b 45%, #81d0f5)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -425,7 +460,7 @@ export function IPDTimeline() {
           }}
         >
           <span>Общий прогресс</span>
-          <span style={{ color: "#e3000b", fontWeight: "600" }}>20% завершено</span>
+          <span style={{ color: "#e3000b", fontWeight: "500" }}>20% завершено</span>
         </div>
         <div
           style={{
@@ -489,20 +524,22 @@ export function IPDTimeline() {
           </button>
           <button
             type="button"
+            onClick={sendForApproval}
+            disabled={submitBusy}
             style={{
               padding: "8px 18px",
               borderRadius: "10px",
-              background: "linear-gradient(135deg, #e3000b, #c40009)",
+              background: submitBusy ? "rgba(227,0,11,0.45)" : "linear-gradient(135deg, #e3000b, #c40009)",
               border: "1px solid rgba(0,0,0,0.12)",
               color: "#ffffff",
               fontSize: "12px",
-              fontWeight: "700",
-              cursor: "pointer",
+              fontWeight: "500",
+              cursor: submitBusy ? "wait" : "pointer",
               fontFamily: "var(--font-sans)",
               boxShadow: "0 4px 14px rgba(227,0,11,0.28)",
             }}
           >
-            Отправить на согласование
+            {submitBusy ? "Отправка…" : "Отправить на согласование"}
           </button>
         </div>
       </div>

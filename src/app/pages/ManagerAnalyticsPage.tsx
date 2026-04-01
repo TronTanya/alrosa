@@ -14,16 +14,18 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { BarChart3, TrendingUp, Users } from "lucide-react";
+import { BarChart3, Users } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
+import { MANAGER_TEAM_SIZE } from "../data/managerTeamCatalog";
 
 const deptProgress = [
-  { dept: "Backend", прогресс: 78 },
-  { dept: "Frontend", прогресс: 84 },
-  { dept: "DevOps", прогресс: 71 },
-  { dept: "QA", прогресс: 69 },
-  { dept: "Product", прогресс: 88 },
-  { dept: "Design", прогресс: 62 },
+  { dept: "Бэкенд", прогресс: 81 },
+  { dept: "Фронтенд", прогресс: 91 },
+  { dept: "Девопс", прогресс: 76 },
+  { dept: "Контроль качества", прогресс: 65 },
+  { dept: "Продукт", прогресс: 88 },
+  { dept: "Дизайн", прогресс: 55 },
+  { dept: "Аналитика", прогресс: 38 },
 ];
 
 const teamTrend = [
@@ -37,7 +39,7 @@ const teamTrend = [
 
 const focusMix = [
   { name: "Тех. навыки", value: 44, color: "#e3000b" },
-  { name: "Soft Skills", value: 22, color: "#81d0f5" },
+  { name: "Гибкие навыки", value: 22, color: "#81d0f5" },
   { name: "Лидерство", value: 18, color: "#000000" },
   { name: "Безопасность", value: 16, color: "#0284c7" },
 ];
@@ -56,10 +58,10 @@ const TooltipBox = ({ active, payload, label }: { active?: boolean; payload?: Ar
         boxShadow: "0 12px 40px rgba(0,0,0,0.08), 0 0 0 1px rgba(227,0,11,0.06)",
       }}
     >
-      <div style={{ fontSize: "11px", fontWeight: "700", color: "#000000", marginBottom: "6px" }}>{label}</div>
+      <div style={{ fontSize: "11px", fontWeight: "500", color: "#000000", marginBottom: "6px" }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ fontSize: "11px", color: "#000000" }}>
-          {p.name}: <span style={{ color: p.color ?? "#e3000b", fontWeight: 700 }}>{p.value}</span>
+          {p.name}: <span style={{ color: p.color ?? "#e3000b", fontWeight: 500 }}>{p.value}</span>
         </div>
       ))}
     </div>
@@ -71,7 +73,7 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) 
     <div className="analytics-section-title">
       <span className="analytics-section-title__bar" aria-hidden />
       <div>
-        <div style={{ fontSize: "14px", fontWeight: 700, color: "#000000", margin: 0, fontFamily: "var(--font-sans)" }}>{title}</div>
+        <div style={{ fontSize: "14px", fontWeight: 500, color: "#000000", margin: 0, fontFamily: "var(--font-sans)" }}>{title}</div>
         <div style={{ fontSize: "12px", color: "#000000", marginTop: "2px", fontFamily: "var(--font-sans)" }}>{subtitle}</div>
       </div>
     </div>
@@ -97,7 +99,7 @@ export function ManagerAnalyticsPage() {
             <h1
               style={{
                 fontSize: "21px",
-                fontWeight: "800",
+                fontWeight: "600",
                 color: "#000000",
                 letterSpacing: "-0.4px",
                 margin: 0,
@@ -108,7 +110,7 @@ export function ManagerAnalyticsPage() {
               Аналитика
             </h1>
             <p style={{ fontSize: "13px", color: "#000000", margin: "8px 0 0", maxWidth: "720px", lineHeight: 1.55, fontFamily: "var(--font-sans)" }}>
-              Сводка по команде (15 сотрудников): средний прогресс, динамика и распределение фокуса обучения по направлениям.
+              Сводка по команде ({MANAGER_TEAM_SIZE} сотрудников): средний прогресс, динамика и распределение фокуса обучения по направлениям.
             </p>
           </div>
         </div>
@@ -124,7 +126,6 @@ export function ManagerAnalyticsPage() {
       >
         {[
           { icon: Users, color: brandIcon.stroke, label: "Средний прогресс команды", value: "76%", sub: "по компетенциям", trend: "+4% за месяц" },
-          { icon: TrendingUp, color: brandIcon.accentRed, label: "Выполнение ИПР", value: "84%", sub: "в графике", trend: "+11% за квартал" },
           { icon: BarChart3, color: brandIcon.accentCyan, label: "Часы обучения / мес.", value: "312", sub: "на команду", trend: "норма выдержана" },
         ].map((k, i) => {
           const KIcon = k.icon;
@@ -163,11 +164,11 @@ export function ManagerAnalyticsPage() {
                 >
                   <KIcon size={18} color={k.color} strokeWidth={brandIcon.sw} />
                 </div>
-                <span style={{ fontSize: "12px", color: "#000000", fontWeight: "600", fontFamily: "var(--font-sans)" }}>{k.label}</span>
+                <span style={{ fontSize: "12px", color: "#000000", fontWeight: "500", fontFamily: "var(--font-sans)" }}>{k.label}</span>
               </div>
-              <div style={{ fontSize: "26px", fontWeight: "700", color: "#000000", letterSpacing: "-0.5px", fontFamily: "var(--font-sans)" }}>{k.value}</div>
+              <div style={{ fontSize: "26px", fontWeight: "500", color: "#000000", letterSpacing: "-0.5px", fontFamily: "var(--font-sans)" }}>{k.value}</div>
               <div style={{ fontSize: "11px", color: "#000000", marginTop: "4px", fontFamily: "var(--font-sans)" }}>{k.sub}</div>
-              <div style={{ fontSize: "11px", color: "#000000", marginTop: "8px", fontWeight: "600", fontFamily: "var(--font-sans)" }}>{k.trend}</div>
+              <div style={{ fontSize: "11px", color: "#000000", marginTop: "8px", fontWeight: "500", fontFamily: "var(--font-sans)" }}>{k.trend}</div>
             </motion.div>
           );
         })}
@@ -239,8 +240,8 @@ export function ManagerAnalyticsPage() {
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center", marginTop: "4px" }}>
             {focusMix.map((s) => (
-              <span key={s.name} style={{ fontSize: "12px", color: "#000000", fontWeight: 600, fontFamily: "var(--font-sans)" }}>
-                <span style={{ color: s.color, fontWeight: 700 }} aria-hidden>
+              <span key={s.name} style={{ fontSize: "12px", color: "#000000", fontWeight: 500, fontFamily: "var(--font-sans)" }}>
+                <span style={{ color: s.color, fontWeight: 500 }} aria-hidden>
                   ●
                 </span>{" "}
                 {s.name} <span style={{ color: "#000000" }}>{s.value}%</span>

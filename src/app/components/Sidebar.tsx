@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router";
 import { useMobileNav } from "../contexts/MobileNavContext";
+import { useLocale } from "../contexts/LocaleContext";
 import {
   LayoutDashboard,
   BookOpen,
@@ -14,23 +15,24 @@ import {
   HelpCircle,
   ChevronRight,
 } from "lucide-react";
-import { brandIcon } from "../lib/brandIcons";
+import { brandIcon, type BrandLucideIcon } from "../lib/brandIcons";
 import { ROUTE_PATHS } from "../routePaths";
+import { LEARNING_SNAPSHOT } from "../data/employeePortalAnalytics";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Главная", badge: null, to: "/" },
-  { icon: BookOpen, label: "Мои курсы", badge: "12", to: "/courses" },
-  { icon: BrainCircuit, label: "ИИ-Наставник", badge: null, to: "/cabinet" },
-  { icon: BarChart3, label: "Аналитика", badge: null, to: "/analytics" },
-  { icon: Calendar, label: "Календарь", badge: "2", to: ROUTE_PATHS.employeeCalendar },
-  { icon: FileText, label: "Заявки на обучение", badge: "1", to: "/idp" },
-  { icon: Award, label: "Сертификаты", badge: null, to: "/certificates" },
-  { icon: Users, label: "Команда", badge: null, to: "/my-team" },
+  { icon: LayoutDashboard, tKey: "nav.home", badge: null, to: ROUTE_PATHS.employee },
+  { icon: BookOpen, tKey: "nav.courses", badge: String(LEARNING_SNAPSHOT.coursesInPlan), to: ROUTE_PATHS.employeeCourses },
+  { icon: BrainCircuit, tKey: "nav.mentor", badge: null, to: ROUTE_PATHS.employeeCabinet },
+  { icon: BarChart3, tKey: "nav.analytics", badge: null, to: ROUTE_PATHS.employeeAnalytics },
+  { icon: Calendar, tKey: "nav.calendar", badge: "2", to: ROUTE_PATHS.employeeCalendar },
+  { icon: FileText, tKey: "nav.idp", badge: "1", to: ROUTE_PATHS.employeeIdp },
+  { icon: Award, tKey: "nav.certificates", badge: null, to: ROUTE_PATHS.employeeCertificates },
+  { icon: Users, tKey: "nav.team", badge: null, to: ROUTE_PATHS.employeeTeam },
 ] as const;
 
 const bottomItems = [
-  { icon: HelpCircle, label: "Поддержка", to: "/support" },
-  { icon: Settings, label: "Настройки", to: "/settings" },
+  { icon: HelpCircle, tKey: "nav.support", to: ROUTE_PATHS.employeeSupport },
+  { icon: Settings, tKey: "nav.settings", to: ROUTE_PATHS.employeeSettings },
 ] as const;
 
 function NavItem({
@@ -41,7 +43,7 @@ function NavItem({
   to,
   onNavigate,
 }: {
-  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
+  icon: BrandLucideIcon;
   label: string;
   badge?: string | null;
   active?: boolean;
@@ -86,7 +88,7 @@ function NavItem({
             alignItems: "center",
             justifyContent: "center",
             fontSize: "10px",
-            fontWeight: "700",
+            fontWeight: "500",
             color: isActive ? "#000000" : "#000000",
             padding: "0 5px",
           }}
@@ -102,7 +104,7 @@ function NavItem({
     return (
       <NavLink
         to={to}
-        end={to === "/"}
+        end={to === ROUTE_PATHS.employee}
         className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         style={{ textDecoration: "none" }}
         onClick={() => onNavigate?.()}
@@ -117,6 +119,7 @@ function NavItem({
 
 export function Sidebar() {
   const { open, setOpen } = useMobileNav();
+  const { t } = useLocale();
   const close = () => setOpen(false);
 
   return (
@@ -124,19 +127,26 @@ export function Sidebar() {
       <div
         style={{
           fontSize: "10px",
-          fontWeight: "600",
+          fontWeight: "500",
           letterSpacing: "1.2px",
           color: "#000000",
           textTransform: "uppercase",
           padding: "0 14px 10px",
         }}
       >
-        Навигация
+        {t("nav.section")}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
         {navItems.map((item) => (
-          <NavItem key={item.label} {...item} onNavigate={close} />
+          <NavItem
+            key={item.tKey}
+            icon={item.icon}
+            label={t(item.tKey)}
+            badge={item.badge}
+            to={item.to}
+            onNavigate={close}
+          />
         ))}
       </div>
 
@@ -158,11 +168,15 @@ export function Sidebar() {
         }}
       >
         <div style={{ fontSize: "11px", color: "#000000", marginBottom: "6px" }}>
-          Прогресс обучения
+          {t("sidebar.progress")}
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-          <span style={{ fontSize: "22px", fontWeight: "800", color: "#000000" }}>42%</span>
-          <span style={{ fontSize: "11px", color: "#000000", fontWeight: "600" }}>↑ +8% / мес.</span>
+          <span style={{ fontSize: "22px", fontWeight: "600", color: "#000000" }}>
+            {LEARNING_SNAPSHOT.planProgressPercent}%
+          </span>
+          <span style={{ fontSize: "11px", color: "#000000", fontWeight: "500" }}>
+            ↑ +{LEARNING_SNAPSHOT.planDeltaMonthPercent}% / {t("sidebar.perMonth")}
+          </span>
         </div>
         <div
           style={{
@@ -174,7 +188,7 @@ export function Sidebar() {
         >
           <div
             style={{
-              width: "42%",
+              width: `${LEARNING_SNAPSHOT.planProgressPercent}%`,
               height: "100%",
               background: "linear-gradient(90deg, #e3000b, #81d0f5)",
               borderRadius: "4px",
@@ -183,25 +197,42 @@ export function Sidebar() {
           />
         </div>
         <div style={{ fontSize: "10px", color: "#000000", marginTop: "6px" }}>
-          5 из 12 курсов завершено
+          {LEARNING_SNAPSHOT.coursesCompleted} {t("sidebar.of")} {LEARNING_SNAPSHOT.coursesInPlan}{" "}
+          {t("sidebar.coursesDone")}
         </div>
+        <NavLink
+          to={ROUTE_PATHS.employeeAnalytics}
+          onClick={close}
+          style={{
+            display: "inline-block",
+            marginTop: "10px",
+            fontSize: "11px",
+            fontWeight: 500,
+            color: "#000000",
+            textDecoration: "none",
+            borderBottom: "1px solid rgba(227,0,11,0.35)",
+            fontFamily: "var(--font-sans)",
+          }}
+        >
+          {t("sidebar.analyticsLink")}
+        </NavLink>
       </div>
 
       <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "2px" }}>
         <div
           style={{
             fontSize: "10px",
-            fontWeight: "600",
+            fontWeight: "500",
             letterSpacing: "1.2px",
             color: "#000000",
             textTransform: "uppercase",
             padding: "0 14px 10px",
           }}
         >
-          Система
+          {t("nav.system")}
         </div>
         {bottomItems.map((item) => (
-          <NavItem key={item.label} {...item} onNavigate={close} />
+          <NavItem key={item.tKey} icon={item.icon} label={t(item.tKey)} to={item.to} onNavigate={close} />
         ))}
       </div>
 

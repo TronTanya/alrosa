@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { Home, LayoutDashboard, Users, Shield, ArrowLeft, Sparkles, Terminal } from "lucide-react";
+import { LayoutDashboard, Users, Shield, ArrowLeft, Sparkles, Terminal } from "lucide-react";
+import { HR_LD_SECTION_LABEL } from "../lib/hrLdLabels";
 
 /* ─── Glitch text effect ─── */
 function GlitchText({ text }: { text: string }) {
@@ -133,7 +134,7 @@ const shortcuts = [
   {
     path: "/hr",
     icon: Users,
-    label: "HR / L&D",
+    label: HR_LD_SECTION_LABEL,
     sub: "Анна Смирнова",
     accent: "#e3000b",
     grad: "linear-gradient(135deg,#e3000b,#81d0f5)",
@@ -265,7 +266,7 @@ export function NotFoundPage() {
             Алроса ИТ · Единая среда обучения
           </span>
           <span style={{ fontSize: "11px", color: "#000000" }}>·</span>
-          <span style={{ fontSize: "11px", fontWeight: "600", color: "#FF4757" }}>Страница не найдена</span>
+          <span style={{ fontSize: "11px", fontWeight: "500", color: "#FF4757" }}>Страница не найдена</span>
         </motion.div>
 
         {/* 404 glitch number */}
@@ -284,7 +285,7 @@ export function NotFoundPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.45 }}
         >
-          <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#000000", margin: "0 0 10px", letterSpacing: "-0.4px" }}>
+          <h1 style={{ fontSize: "24px", fontWeight: "600", color: "#000000", margin: "0 0 10px", letterSpacing: "-0.4px" }}>
             Маршрут не обнаружен
           </h1>
           <p style={{ fontSize: "14px", color: "#000000", margin: "0 0 24px", lineHeight: 1.7 }}>
@@ -347,7 +348,7 @@ export function NotFoundPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.45 }}
         >
-          <div style={{ fontSize: "11px", fontWeight: "600", color: "#000000", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "12px" }}>
+          <div style={{ fontSize: "11px", fontWeight: "500", color: "#000000", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "12px" }}>
             Перейти в раздел
           </div>
           <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -379,12 +380,12 @@ export function NotFoundPage() {
                   }}
                 >
                   {/* Avatar */}
-                  <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: s.grad, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: "800", color: "#000000", flexShrink: 0, boxShadow: isH ? `0 0 12px ${s.accent}66` : "none", transition: "box-shadow .2s" }}>
+                  <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: s.grad, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: "600", color: "#000000", flexShrink: 0, boxShadow: isH ? `0 0 12px ${s.accent}66` : "none", transition: "box-shadow .2s" }}>
                     {s.initials}
                   </div>
                   {/* Text */}
                   <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: "13px", fontWeight: "700", color: isH ? "#000000" : "#000000", lineHeight: 1.2 }}>{s.label}</div>
+                    <div style={{ fontSize: "13px", fontWeight: "500", color: isH ? "#000000" : "#000000", lineHeight: 1.2 }}>{s.label}</div>
                     <div style={{ fontSize: "11px", color: "#000000", marginTop: "1px" }}>{s.sub}</div>
                   </div>
                   {/* Arrow */}

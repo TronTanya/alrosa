@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { HelpCircle, Mail, Phone, MessageCircle, ChevronDown, Clock, BookOpen } from "lucide-react";
+import { L_D_GLOSS } from "../lib/hrLdLabels";
 
 const faq = [
   {
     q: "Как сбросить прогресс по курсу?",
-    a: "Обратитесь в L&D через заявку в разделе «Заявки на обучение» или напишите на eso-support@company.ru — укажите название курса и причину сброса.",
+    a: `Обратитесь в ${L_D_GLOSS} через заявку в разделе «Заявки на обучение» или напишите на eso-support@company.ru — укажите название курса и причину сброса.`,
   },
   {
     q: "ИИ-наставник не отвечает или выдаёт ошибку",
@@ -16,7 +17,7 @@ const faq = [
     a: "Раздел «Заявки на обучение»: таблица со всеми заявками и текущими статусами согласования.",
   },
   {
-    q: "Как связаться с HR по обучению?",
+    q: "Как связаться с HR (кадры) по обучению?",
     a: "Корпоративная почта hr-learning@company.ru или внутренний канал #l-and-d в корпоративном мессенджере.",
   },
 ];
@@ -47,7 +48,7 @@ export function SupportPage() {
             <h1
               style={{
                 fontSize: "21px",
-                fontWeight: "800",
+                fontWeight: "600",
                 color: "#fff",
                 letterSpacing: "-0.4px",
                 margin: 0,
@@ -111,9 +112,9 @@ export function SupportPage() {
             <>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
                 <CIcon size={18} style={{ color: "#000000" }} />
-                <span style={{ fontSize: "12px", fontWeight: "700", color: "#000000" }}>{c.title}</span>
+                <span style={{ fontSize: "12px", fontWeight: "500", color: "#000000" }}>{c.title}</span>
               </div>
-              <div style={{ fontSize: "14px", fontWeight: "800", color: "#fff", marginBottom: "6px" }}>{c.value}</div>
+              <div style={{ fontSize: "14px", fontWeight: "600", color: "#fff", marginBottom: "6px" }}>{c.value}</div>
               <div style={{ fontSize: "11px", color: "#000000" }}>{c.sub}</div>
             </>
           );
@@ -145,14 +146,14 @@ export function SupportPage() {
       >
         <Clock size={20} style={{ color: "#000000", flexShrink: 0 }} />
         <div style={{ fontSize: "13px", color: "#000000", lineHeight: 1.5 }}>
-          <span style={{ color: "#fff", fontWeight: "700" }}>Режим работы службы:</span> понедельник–пятница, 9:00–18:00 по
+          <span style={{ color: "#fff", fontWeight: "500" }}>Режим работы службы:</span> понедельник–пятница, 9:00–18:00 по
           Москве. Вне графика заявки обрабатываются по почте в порядке очереди.
         </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
         <BookOpen size={18} style={{ color: "#000000" }} />
-        <h2 style={{ fontSize: "14px", fontWeight: "800", color: "#fff", margin: 0, letterSpacing: "0.02em" }}>
+        <h2 style={{ fontSize: "14px", fontWeight: "600", color: "#fff", margin: 0, letterSpacing: "0.02em" }}>
           Частые вопросы
         </h2>
       </div>
@@ -190,7 +191,7 @@ export function SupportPage() {
                   textAlign: "left",
                 }}
               >
-                <span style={{ fontSize: "13px", fontWeight: "700", color: "#fff", lineHeight: 1.4 }}>{item.q}</span>
+                <span style={{ fontSize: "13px", fontWeight: "500", color: "#fff", lineHeight: 1.4 }}>{item.q}</span>
                 <ChevronDown
                   size={18}
                   style={{

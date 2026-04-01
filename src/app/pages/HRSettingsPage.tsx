@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { motion } from "motion/react";
 import { BarChart3, Bell, Settings, Sparkles } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
+import { HR_LD_SECTION_LABEL, L_D_GLOSS, HR_GLOSS } from "../lib/hrLdLabels";
 
 function Toggle({
   on,
@@ -74,7 +75,7 @@ function Row({
       }}
     >
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", marginBottom: "4px" }}>{title}</div>
+        <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", marginBottom: "4px" }}>{title}</div>
         <div style={{ fontSize: "12px", color: "#000000", opacity: 0.8, lineHeight: 1.5 }}>{desc}</div>
       </div>
       <Toggle on={toggle.on} onChange={toggle.onChange} id={toggle.id} />
@@ -122,7 +123,7 @@ export function HRSettingsPage() {
                 </h1>
               </div>
               <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "720px" }}>
-                Параметры рабочего стола HR / L&amp;D в ЕСО: уведомления, подсказки ИИ и напоминания об отчётах (сохраняются локально в
+                Параметры рабочего стола {HR_LD_SECTION_LABEL} в ЕСО: уведомления, подсказки ИИ и напоминания об отчётах (сохраняются локально в
                 демо).
               </p>
             </div>
@@ -132,11 +133,13 @@ export function HRSettingsPage() {
         <div className="glass-card" style={{ padding: "18px 20px", marginBottom: "14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <Bell size={16} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
-            <span style={{ fontSize: "12px", fontWeight: "800", color: "#000000", letterSpacing: "0.08em" }}>УВЕДОМЛЕНИЯ HR</span>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: "#000000", letterSpacing: "0.08em" }}>
+              УВЕДОМЛЕНИЯ {HR_GLOSS}
+            </span>
           </div>
           <Row
             title="Новые заявки на обучение"
-            desc="Push и письмо при появлении заявки в очереди L&D."
+            desc={`Push и письмо при появлении заявки в очереди ${L_D_GLOSS}.`}
             toggle={{ on: notifyNewApps, onChange: setNotifyNewApps, id: "hr-notify-apps" }}
           />
           <Row
@@ -155,7 +158,7 @@ export function HRSettingsPage() {
         <div className="glass-card" style={{ padding: "18px 20px", marginBottom: "14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <BarChart3 size={16} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
-            <span style={{ fontSize: "12px", fontWeight: "800", color: "#000000", letterSpacing: "0.08em" }}>ОТЧЁТЫ</span>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: "#000000", letterSpacing: "0.08em" }}>ОТЧЁТЫ</span>
           </div>
           <Row
             title="Напоминание о выгрузке"
@@ -168,7 +171,7 @@ export function HRSettingsPage() {
         <div className="glass-card" style={{ padding: "18px 20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <Sparkles size={16} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
-            <span style={{ fontSize: "12px", fontWeight: "800", color: "#000000", letterSpacing: "0.08em" }}>ИИ-НАСТАВНИК</span>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: "#000000", letterSpacing: "0.08em" }}>ИИ-НАСТАВНИК</span>
           </div>
           <Row
             title="Контекстные подсказки в интерфейсе"
@@ -180,7 +183,7 @@ export function HRSettingsPage() {
 
         <p style={{ fontSize: "11px", color: "#000000", margin: 0, opacity: 0.75, lineHeight: 1.55 }}>
           Личные настройки аккаунта (язык, выход из системы):{" "}
-          <Link to="/settings" style={{ color: "#000000", fontWeight: 700, textDecoration: "underline" }}>
+          <Link to="/settings" style={{ color: "#000000", fontWeight: 500, textDecoration: "underline" }}>
             раздел «Настройки» ЛК
           </Link>
           .

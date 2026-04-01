@@ -5,7 +5,6 @@ import {
   BarChart3,
   BrainCircuit,
   BookOpen,
-  Calendar,
   FileText,
   Award,
   Settings,
@@ -17,18 +16,18 @@ import {
 import { useMobileNav } from "../../contexts/MobileNavContext";
 import { brandIcon } from "../../lib/brandIcons";
 import { ROUTE_PATHS } from "../../routePaths";
+import { MANAGER_TEAM_SIZE, managerTeamInActiveLearning } from "../../data/managerTeamCatalog";
 
 type NavEntry =
   | { kind: "navlink"; icon: LucideIcon; label: string; badge: string | null; to: string; end?: boolean }
   | { kind: "link"; icon: LucideIcon; label: string; badge: string | null; to: string };
 
 const navItems: NavEntry[] = [
-  { kind: "navlink", icon: LayoutDashboard, label: "Главная", badge: "15", to: ROUTE_PATHS.manager, end: true },
+  { kind: "navlink", icon: LayoutDashboard, label: "Главная", badge: String(MANAGER_TEAM_SIZE), to: ROUTE_PATHS.manager, end: true },
   { kind: "navlink", icon: BarChart3, label: "Аналитика", badge: null, to: ROUTE_PATHS.managerAnalytics, end: true },
   { kind: "navlink", icon: BrainCircuit, label: "ИИ-Наставник", badge: null, to: ROUTE_PATHS.managerMentor, end: true },
-  { kind: "navlink", icon: BookOpen, label: "Курсы и обучение", badge: "7", to: ROUTE_PATHS.managerCourses, end: true },
+  { kind: "navlink", icon: BookOpen, label: "Курсы и обучение", badge: String(managerTeamInActiveLearning()), to: ROUTE_PATHS.managerCourses, end: true },
   { kind: "navlink", icon: TrendingUp, label: "Компетенции", badge: null, to: ROUTE_PATHS.managerCompetencies, end: true },
-  { kind: "navlink", icon: Calendar, label: "Календарь", badge: "3", to: ROUTE_PATHS.managerCalendar, end: true },
   { kind: "navlink", icon: FileText, label: "Отчёты", badge: null, to: ROUTE_PATHS.managerReports, end: true },
   { kind: "navlink", icon: Award, label: "Достижения", badge: null, to: ROUTE_PATHS.managerAchievements, end: true },
 ];
@@ -77,7 +76,7 @@ function rowInner(
             alignItems: "center",
             justifyContent: "center",
             fontSize: "10px",
-            fontWeight: "700",
+            fontWeight: "500",
             color: isActive ? "#ffffff" : "rgba(0,0,0,0.55)",
             padding: "0 5px",
           }}
@@ -144,7 +143,7 @@ export function ManagerSidebar() {
       <div
         style={{
           fontSize: "10px",
-          fontWeight: "600",
+          fontWeight: "500",
           letterSpacing: "1.2px",
           color: "rgba(0,0,0,0.45)",
           textTransform: "uppercase",
@@ -171,10 +170,10 @@ export function ManagerSidebar() {
           boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
         }}
       >
-        <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.5)", marginBottom: "6px" }}>Здоровье команды</div>
+        <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.5)", marginBottom: "6px" }}>Прогресс команды</div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-          <span style={{ fontSize: "24px", fontWeight: "800", color: "#000000", letterSpacing: "-0.5px" }}>76%</span>
-          <span style={{ fontSize: "11px", color: brandIcon.accentCyan, fontWeight: "600" }}>↑ +4% / мес.</span>
+          <span style={{ fontSize: "24px", fontWeight: "600", color: "#000000", letterSpacing: "-0.5px" }}>76%</span>
+          <span style={{ fontSize: "11px", color: brandIcon.accentCyan, fontWeight: "500" }}>↑ +4% / мес.</span>
         </div>
         <div style={{ height: "4px", borderRadius: "4px", background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
           <div
@@ -187,14 +186,16 @@ export function ManagerSidebar() {
             }}
           />
         </div>
-        <div style={{ fontSize: "10px", color: "rgba(0,0,0,0.45)", marginTop: "8px" }}>15 из 15 сотрудников активны</div>
+        <div style={{ fontSize: "10px", color: "rgba(0,0,0,0.45)", marginTop: "8px" }}>
+          {MANAGER_TEAM_SIZE} из {MANAGER_TEAM_SIZE} сотрудников активны
+        </div>
       </div>
 
       <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "2px" }}>
         <div
           style={{
             fontSize: "10px",
-            fontWeight: "600",
+            fontWeight: "500",
             letterSpacing: "1.2px",
             color: "rgba(0,0,0,0.45)",
             textTransform: "uppercase",

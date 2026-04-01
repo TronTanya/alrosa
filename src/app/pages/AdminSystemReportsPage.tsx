@@ -25,13 +25,13 @@ const statusFilters: { val: AdminReportJobStatus | "all"; label: string }[] = [
 const FORMAT_OPTIONS: { val: AdminReportFormat | "all"; label: string }[] = [
   { val: "all", label: "Все форматы" },
   { val: "pdf", label: "PDF" },
-  { val: "xlsx", label: "Excel" },
+  { val: "xlsx", label: "Таблица (XLSX)" },
   { val: "csv", label: "CSV" },
 ];
 
 function formatLabel(f: AdminReportFormat): string {
   if (f === "pdf") return "PDF";
-  if (f === "xlsx") return "Excel";
+  if (f === "xlsx") return "Таблица (XLSX)";
   return "CSV";
 }
 
@@ -90,7 +90,7 @@ export function AdminSystemReportsPage() {
       padding: "12px 18px",
       fontSize: "13px",
       fontFamily: "var(--font-sans)",
-      fontWeight: "600",
+      fontWeight: "500",
       maxWidth: "360px",
     });
     document.body.appendChild(el);
@@ -122,7 +122,7 @@ export function AdminSystemReportsPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -138,7 +138,7 @@ export function AdminSystemReportsPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -152,7 +152,7 @@ export function AdminSystemReportsPage() {
                       background: "rgba(227,0,11,0.1)",
                       border: "1px solid rgba(227,0,11,0.25)",
                       fontSize: "11px",
-                      fontWeight: "700",
+                      fontWeight: "500",
                       color: "#e3000b",
                     }}
                   >
@@ -267,7 +267,7 @@ export function AdminSystemReportsPage() {
                         textAlign: h ? "left" : "right",
                         padding: "12px 14px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -292,7 +292,7 @@ export function AdminSystemReportsPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 14px", maxWidth: "260px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
                         <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.55)", marginTop: "4px", lineHeight: 1.4 }}>{r.detail}</div>
                       </td>
                       <td style={{ padding: "14px 14px", fontSize: "12px", color: "#000000", whiteSpace: "nowrap" }}>{r.category}</td>
@@ -303,7 +303,7 @@ export function AdminSystemReportsPage() {
                             padding: "4px 10px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             background: fc.bg,
                             border: `1px solid ${fc.border}`,
                             color: "#000000",
@@ -328,7 +328,7 @@ export function AdminSystemReportsPage() {
                             background: st.bg,
                             color: st.color,
                             fontSize: "12px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             fontFamily: "var(--font-sans)",
                             cursor: "pointer",
                             outline: "none",

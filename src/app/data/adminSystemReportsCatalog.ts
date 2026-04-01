@@ -46,7 +46,7 @@ export const adminSystemReportsSeed: AdminSystemReportRow[] = [
     status: "running",
     lastRun: "Выполняется…",
     sizeMb: null,
-    detail: "GigaChat, внешние LMS, места в хранилище.",
+    detail: "Яндекс Алиса, внешние LMS, места в хранилище.",
   },
   {
     id: "rep-backup",
@@ -73,7 +73,7 @@ export const adminSystemReportsSeed: AdminSystemReportRow[] = [
   {
     id: "rep-compliance",
     name: "Комплаенс обучения (ИТ)",
-    category: "HR / L&D",
+    category: "HR / L&D (кадры / обучение и развитие)",
     format: "pdf",
     schedule: "Ежеквартально",
     status: "ready",

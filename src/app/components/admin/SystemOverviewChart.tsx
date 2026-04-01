@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import type { TooltipProps } from "recharts";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Download, Filter, Wifi, CheckCircle, AlertCircle } from "lucide-react";
+import { downloadTextFile, showAdminToast } from "../../lib/adminToast";
 
 const weeklyData = [
   { day: "Пн", active: 218, sessions: 340, errors: 2, load: 14, новые: 3 },
@@ -15,9 +17,9 @@ const weeklyData = [
 const modules = [
   { name: "Авторизация (SSO)",      status: "online", uptime: "99.98%", latency: "12ms",  users: 312 },
   { name: "LMS Core",                status: "online", uptime: "99.95%", latency: "28ms",  users: 248 },
-  { name: "GigaChat AI API",         status: "online", uptime: "100%",   latency: "210ms", users: 186 },
-  { name: "Outlook Integration",     status: "online", uptime: "99.82%", latency: "45ms",  users: 312 },
-  { name: "Аналитика & Reporting",   status: "online", uptime: "99.90%", latency: "67ms",  users: 34  },
+  { name: "Яндекс Алиса API",        status: "online", uptime: "100%",   latency: "210ms", users: 186 },
+  { name: "Интеграция с Outlook",     status: "online", uptime: "99.82%", latency: "45ms",  users: 312 },
+  { name: "Аналитика и отчёты",   status: "online", uptime: "99.90%", latency: "67ms",  users: 34  },
   { name: "Уведомления (Push/Email)",status: "warn",   uptime: "98.10%", latency: "320ms", users: 298 },
 ];
 
@@ -32,7 +34,7 @@ const statusIcon = (s: string) =>
 
 const statusColor = (s: string) => (s === "online" ? "#81d0f5" : s === "warn" ? "#e3000b" : "#c40009");
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
   return (
     <div
@@ -45,14 +47,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         minWidth: "170px",
       }}
     >
-      <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", marginBottom: "8px" }}>{label}</div>
-      {payload.map((p: any, i: number) => (
+      <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", marginBottom: "8px" }}>{label}</div>
+      {payload.map((p, i: number) => (
         <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: "14px", marginBottom: "4px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
             <div style={{ width: "7px", height: "7px", borderRadius: "2px", background: p.color }} />
             <span style={{ fontSize: "11px", color: "rgba(0,0,0,0.55)" }}>{p.name}</span>
           </div>
-          <span style={{ fontSize: "12px", fontWeight: "700", color: p.color }}>{p.value}</span>
+          <span style={{ fontSize: "12px", fontWeight: "500", color: p.color }}>{p.value}</span>
         </div>
       ))}
     </div>
@@ -64,6 +66,18 @@ type Range = "7д" | "14д" | "30д";
 export function SystemOverviewChart() {
   const [range, setRange] = useState<Range>("7д");
 
+  const onFilter = () => {
+    showAdminToast(`Фильтр: интервал «${range}». Демо-график строится по недельным точкам; сравнение периодов — в мониторинге.`);
+  };
+
+  const onDownload = () => {
+    const header = ["День", "Активных", "Сессий", "Ошибок", "Нагрузка_CPU_%", "Новых"];
+    const lines = [header.join(";"), ...weeklyData.map((r) => [r.day, r.active, r.sessions, r.errors, r.load, r.новые].join(";"))];
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadTextFile(`eso-system-overview-${stamp}.csv`, lines.join("\r\n"), "text/csv;charset=utf-8");
+    showAdminToast("CSV выгружен в папку загрузок.");
+  };
+
   return (
     <div className="glass-card" style={{ padding: "24px", minWidth: 0 }}>
       {/* Header */}
@@ -71,10 +85,10 @@ export function SystemOverviewChart() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <div style={{ width: "4px", height: "18px", borderRadius: "4px", background: "linear-gradient(180deg,#e3000b,#81d0f5)" }} />
-            <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#000000", margin: 0 }}>Обзор системы</h3>
+            <h3 style={{ fontSize: "15px", fontWeight: "500", color: "#000000", margin: 0 }}>Обзор системы</h3>
             <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.12)", border: "1px solid rgba(129,208,245,0.35)" }}>
               <Wifi size={10} style={{ color: "#000000" }} />
-              <span style={{ fontSize: "10px", fontWeight: "600", color: "#000000" }}>Live</span>
+              <span style={{ fontSize: "10px", fontWeight: "500", color: "#000000" }}>Live</span>
             </div>
           </div>
           <p style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", margin: 0 }}>Активность пользователей · Сессии · Нагрузка · Модули</p>
@@ -92,7 +106,7 @@ export function SystemOverviewChart() {
                 border: `1px solid ${range === r ? "rgba(227,0,11,0.35)" : "rgba(129,208,245,0.2)"}`,
                 color: range === r ? "#000000" : "rgba(0,0,0,0.5)",
                 fontSize: "11.5px",
-                fontWeight: "600",
+                fontWeight: "500",
                 cursor: "pointer",
                 fontFamily: "var(--font-sans)",
                 transition: "all .15s",
@@ -101,26 +115,44 @@ export function SystemOverviewChart() {
               {r}
             </button>
           ))}
-          {[Filter, Download].map((Icon, i) => (
-            <button
-              key={i}
-              type="button"
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "8px",
-                background: "rgba(129,208,245,0.06)",
-                border: "1px solid rgba(0,0,0,0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: "#000000",
-              }}
-            >
-              <Icon size={13} />
-            </button>
-          ))}
+          <button
+            type="button"
+            title="Подсказка по фильтру"
+            onClick={onFilter}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "rgba(129,208,245,0.06)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Filter size={13} />
+          </button>
+          <button
+            type="button"
+            title="Скачать CSV"
+            onClick={onDownload}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "rgba(129,208,245,0.06)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Download size={13} />
+          </button>
         </div>
       </div>
 
@@ -167,7 +199,7 @@ export function SystemOverviewChart() {
 
       {/* Module status grid */}
       <div style={{ marginTop: "20px", paddingTop: "18px", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-        <div style={{ fontSize: "11.5px", fontWeight: "600", color: "rgba(0,0,0,0.55)", marginBottom: "12px", letterSpacing: ".3px" }}>СТАТУС МОДУЛЕЙ</div>
+        <div style={{ fontSize: "11.5px", fontWeight: "500", color: "rgba(0,0,0,0.55)", marginBottom: "12px", letterSpacing: ".3px" }}>СТАТУС МОДУЛЕЙ</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "8px" }}>
           {modules.map((m, i) => (
             <div
@@ -184,7 +216,7 @@ export function SystemOverviewChart() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 {statusIcon(m.status)}
-                <span style={{ fontSize: "11px", fontWeight: "600", color: "#000000", lineHeight: 1.2 }}>{m.name}</span>
+                <span style={{ fontSize: "11px", fontWeight: "500", color: "#000000", lineHeight: 1.2 }}>{m.name}</span>
               </div>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "10px", color: "rgba(0,0,0,0.55)" }}>↑ {m.uptime}</span>

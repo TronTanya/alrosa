@@ -7,14 +7,15 @@ import {
   type HrCompetencyCategory,
   type HrCompetencyTrend,
 } from "../data/hrCompetenciesMatrix";
+import { L_D_GLOSS } from "../lib/hrLdLabels";
 
 const categoryFilters: { val: HrCompetencyCategory | "all"; label: string }[] = [
   { val: "all", label: "Все" },
   { val: "Технические", label: "Технические" },
-  { val: "Soft skills", label: "Soft skills" },
+  { val: "Soft skills", label: "Гибкие навыки" },
   { val: "Лидерство", label: "Лидерство" },
   { val: "Безопасность", label: "Безопасность" },
-  { val: "Data & AI", label: "Data & AI" },
+  { val: "Data & AI", label: "Данные и ИИ" },
 ];
 
 function priorityStyle(p: "Высокий" | "Средний" | "Низкий"): { bg: string; border: string } {
@@ -84,7 +85,7 @@ export function HRCompetenciesPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -167,14 +168,14 @@ export function HRCompetenciesPage() {
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "920px" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
-                  {["Компетенция", "Категория", "Охват", "Средний уровень", "Тренд", "Приоритет L&D"].map((h) => (
+                  {["Компетенция", "Категория", "Охват", "Средний уровень", "Тренд", `Приоритет ${L_D_GLOSS}`].map((h) => (
                     <th
                       key={h}
                       style={{
                         textAlign: "left",
                         padding: "12px 16px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -197,12 +198,12 @@ export function HRCompetenciesPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 16px", maxWidth: "320px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.category}</td>
-                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "700", color: "#000000" }}>{r.coveragePct}%</td>
+                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "500", color: "#000000" }}>{r.coveragePct}%</td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.avgLevel}</td>
-                      <td style={{ padding: "14px 16px", fontSize: "16px", fontWeight: "800", color: trendColor(r.trend) }}>{r.trend}</td>
+                      <td style={{ padding: "14px 16px", fontSize: "16px", fontWeight: "600", color: trendColor(r.trend) }}>{r.trend}</td>
                       <td style={{ padding: "14px 16px" }}>
                         <span
                           style={{
@@ -210,7 +211,7 @@ export function HRCompetenciesPage() {
                             padding: "3px 9px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             color: "#000000",
                             background: pr.bg,
                             border: `1px solid ${pr.border}`,

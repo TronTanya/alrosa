@@ -16,8 +16,22 @@ import { Breadcrumb } from "./Breadcrumb";
 import { EmployeeGlobalSearch } from "./EmployeeGlobalSearch";
 import { AlrosaLogo } from "./AlrosaBrand";
 import { logout } from "../auth/session";
+import { getYandexProfileForTopbar } from "../auth/yandexIdSession";
 import { useMobileNav } from "../contexts/MobileNavContext";
 import { brandIcon } from "../lib/brandIcons";
+import {
+  buildEmployeeTopbarNotifications,
+  EMPLOYEE_TOPBAR_NOTIFICATION_IDS,
+  type EmployeeNotifItem,
+} from "../lib/employeeTopbarNotifications";
+import {
+  setEmployeeLastAckAppId,
+  setOneRead,
+  setAllRead,
+  SITE_NOTIF_READS_EMPLOYEE,
+  SITE_NOTIFICATIONS_CHANGED,
+} from "../lib/siteNotificationsStorage";
+import { readStoredTrainingApplications, TRAINING_APPLICATIONS_UPDATED } from "../lib/trainingApplicationsStorage";
 import { ROUTE_PATHS } from "../routePaths";
 
 const MANAGER_PROFILE = {
@@ -28,47 +42,11 @@ const MANAGER_PROFILE = {
 
 const EMPLOYEE_PROFILE = {
   name: "Александр Иванов",
-  title: "Middle Software Engineer",
+  title: "Инженер-программист (Middle)",
   initials: "АИ",
 } as const;
 
-type NotifItem = {
-  id: string;
-  title: string;
-  body: string;
-  time: string;
-  read: boolean;
-  icon: "course" | "idp" | "calendar";
-};
-
-const initialNotifications: NotifItem[] = [
-  {
-    id: "1",
-    title: "Новый модуль в курсе",
-    body: "Доступен блок «Kubernetes: продвинутый уровень».",
-    time: "12 мин назад",
-    read: false,
-    icon: "course",
-  },
-  {
-    id: "2",
-    title: "Заявка на обучение",
-    body: "Статус заявки «Продвинутый Kubernetes» изменён на согласование.",
-    time: "1 ч назад",
-    read: false,
-    icon: "idp",
-  },
-  {
-    id: "3",
-    title: "Напоминание",
-    body: "Завтра в 10:00 — созвон с ИИ-наставником.",
-    time: "3 ч назад",
-    read: false,
-    icon: "calendar",
-  },
-];
-
-function NotifIcon({ kind }: { kind: NotifItem["icon"] }) {
+function NotifIcon({ kind }: { kind: EmployeeNotifItem["icon"] }) {
   const common = { size: 14 as const, color: brandIcon.stroke, strokeWidth: brandIcon.sw } as const;
   if (kind === "course") return <BookOpen {...common} />;
   if (kind === "idp") return <FileText {...common} color={brandIcon.accentRed} />;
@@ -78,7 +56,7 @@ function NotifIcon({ kind }: { kind: NotifItem["icon"] }) {
 export function Topbar() {
   const { toggle: toggleMobileNav } = useMobileNav();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotifItem[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<EmployeeNotifItem[]>(() => buildEmployeeTopbarNotifications());
   const notifWrapRef = useRef<HTMLDivElement>(null);
   const profileWrapRef = useRef<HTMLDivElement>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -89,7 +67,8 @@ export function Topbar() {
     location.pathname === ROUTE_PATHS.manager ||
     location.pathname === ROUTE_PATHS.teamLegacy ||
     location.pathname.startsWith(`${ROUTE_PATHS.manager}/`);
-  const profile = isManagerDashboard ? MANAGER_PROFILE : EMPLOYEE_PROFILE;
+  const yandexProfile = getYandexProfileForTopbar();
+  const profile = yandexProfile ?? (isManagerDashboard ? MANAGER_PROFILE : EMPLOYEE_PROFILE);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -103,12 +82,33 @@ export function Topbar() {
     return () => document.removeEventListener("mousedown", onDocDown);
   }, []);
 
+  useEffect(() => {
+    const sync = () => setNotifications(buildEmployeeTopbarNotifications());
+    sync();
+    window.addEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
+    window.addEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    return () => {
+      window.removeEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
+      window.removeEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    };
+  }, []);
+
   const markRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    if (id === "2") {
+      const apps = readStoredTrainingApplications();
+      if (apps[0]) setEmployeeLastAckAppId(apps[0].id);
+      else setOneRead(SITE_NOTIF_READS_EMPLOYEE, "2", true);
+    } else {
+      setOneRead(SITE_NOTIF_READS_EMPLOYEE, id, true);
+    }
+    setNotifications(buildEmployeeTopbarNotifications());
   };
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    const apps = readStoredTrainingApplications();
+    if (apps[0]) setEmployeeLastAckAppId(apps[0].id);
+    setAllRead(SITE_NOTIF_READS_EMPLOYEE, [...EMPLOYEE_TOPBAR_NOTIFICATION_IDS]);
+    setNotifications(buildEmployeeTopbarNotifications());
   };
 
   return (
@@ -231,7 +231,7 @@ export function Topbar() {
                   gap: "12px",
                 }}
               >
-                <span style={{ fontSize: "14px", fontWeight: "800", color: "#000000" }}>Уведомления</span>
+                <span style={{ fontSize: "14px", fontWeight: "600", color: "#000000" }}>Уведомления</span>
                 {unreadCount > 0 && (
                   <button
                     type="button"
@@ -242,7 +242,7 @@ export function Topbar() {
                       background: "transparent",
                       color: "#e3000b",
                       fontSize: "12px",
-                      fontWeight: "600",
+                      fontWeight: "500",
                       cursor: "pointer",
                       fontFamily: "inherit",
                     }}
@@ -293,7 +293,7 @@ export function Topbar() {
                       <NotifIcon kind={n.icon} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
+                      <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
                       <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px", lineHeight: 1.45 }}>
                         {n.body}
                       </div>
@@ -401,7 +401,7 @@ export function Topbar() {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "13px",
-                  fontWeight: "700",
+                  fontWeight: "500",
                   color: "#ffffff",
                   boxShadow: "0 0 12px rgba(227,0,11,0.35)",
                 }}
@@ -423,7 +423,7 @@ export function Topbar() {
               />
             </div>
             <div className="topbar-profile-text" style={{ textAlign: "left" }}>
-              <div style={{ fontSize: "13px", fontWeight: "600", color: "#000000", lineHeight: 1.2 }}>
+              <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.2 }}>
                 {profile.name}
               </div>
               <div style={{ fontSize: "11px", color: "#000000", lineHeight: 1.2 }}>
@@ -487,7 +487,7 @@ export function Topbar() {
                     cursor: "pointer",
                     fontFamily: "inherit",
                     fontSize: "13px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                     textAlign: "left",
                   }}
@@ -521,7 +521,7 @@ export function Topbar() {
                   cursor: "pointer",
                   fontFamily: "inherit",
                   fontSize: "13px",
-                  fontWeight: "600",
+                  fontWeight: "500",
                   color: "#e3000b",
                   textAlign: "left",
                 }}

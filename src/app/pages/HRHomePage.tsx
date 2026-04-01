@@ -6,6 +6,7 @@ import {
   Award,
   BarChart3,
   BookOpen,
+  GraduationCap,
   BookUser,
   BrainCircuit,
   Calendar,
@@ -39,9 +40,9 @@ export function HRHomePage() {
               <BrandLine wide />
               <div className="landing-hero__row" style={{ marginTop: 18 }}>
                 <div className="landing-hero__titles">
-                  <h1 className="landing-h1">HR / L&D</h1>
+                  <h1 className="landing-h1">Кадры и обучение</h1>
                   <p className="landing-lead">
-                    Анна Смирнова · L&D Директор ·{" "}
+                    Анна Смирнова · директор по обучению и развитию ·{" "}
                     <span className="landing-hero__accent">
                       корпоративный университет и мониторинг обучения в одном окне
                     </span>
@@ -115,7 +116,8 @@ export function HRHomePage() {
                 <div>
                   <div className="landing-cta__title">Дашборд и аналитика</div>
                   <div className="landing-cta__desc">
-                    KPI, графики, heatmap по отделам, ИИ-наставник и таблица заявок — полный рабочий стол HR.
+                    Графики, тепловая карта по отделам, ИИ-наставник и таблица заявок — полный рабочий стол кадровой
+                    службы по обучению.
                   </div>
                 </div>
               </div>
@@ -134,15 +136,21 @@ export function HRHomePage() {
                 { label: "Команда руководителя", desc: "Обзор по подразделениям", to: "/manager", Icon: Users },
                 { label: "Сотрудники", desc: "Реестр и статусы обучения", to: "/hr/employees", Icon: BookUser },
                 { label: "Траектория развития", desc: "ИПР и этапы роста", to: "/hr/trajectory", Icon: UserCog },
-                { label: "ИИ-Наставник", desc: "Чат и рекомендации L&D", to: "/hr/mentor", Icon: BrainCircuit },
+                { label: "ИИ-Наставник", desc: "Чат и рекомендации по обучению и развитию", to: "/hr/mentor", Icon: BrainCircuit },
                 { label: "Каталог курсов", desc: "Внешние и внутренние программы", to: "/hr/catalog", Icon: BookOpen },
-                { label: "Заявки на обучение", desc: "Очередь L&D и статусы", to: "/hr/applications", Icon: ClipboardList },
+                {
+                  label: "Назначение курсов",
+                  desc: "Свой курс и выбор сотрудников из реестра",
+                  to: "/hr/assign-courses",
+                  Icon: GraduationCap,
+                },
+                { label: "Заявки на обучение", desc: "Очередь заявок по обучению и статусы", to: "/hr/applications", Icon: ClipboardList },
                 { label: "Компетенции", desc: "Матрица и приоритеты развития", to: "/hr/competencies", Icon: TrendingUp },
-                { label: "Мероприятия", desc: "Календарь L&D и регистрация", to: "/hr/events", Icon: Calendar },
-                { label: "Отчёты", desc: "Выгрузки PDF и Excel", to: "/hr/reports", Icon: FileText },
+                { label: "Мероприятия", desc: "Календарь мероприятий по обучению и регистрация", to: "/hr/events", Icon: Calendar },
+                { label: "Отчёты", desc: "Выгрузки PDF и электронных таблиц", to: "/hr/reports", Icon: FileText },
                 { label: "Сертификаты", desc: "Реестр по сотрудникам", to: "/hr/certificates", Icon: Award },
-                { label: "Поддержка", desc: "Контакты L&D и ЕСО", to: "/hr/support", Icon: HelpCircle },
-                { label: "Настройки", desc: "Уведомления и ЕСО HR", to: "/hr/settings", Icon: Settings },
+                { label: "Поддержка", desc: "Контакты службы обучения и ЕСО", to: "/hr/support", Icon: HelpCircle },
+                { label: "Настройки", desc: "Уведомления и ЕСО", to: "/hr/settings", Icon: Settings },
               ].map((item, i) => {
                 const QuickIcon = item.Icon;
                 return (
@@ -167,7 +175,7 @@ export function HRHomePage() {
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <QuickIcon size={18} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
-                    <span style={{ fontSize: "14px", fontWeight: 700, color: "#000000" }}>{item.label}</span>
+                    <span style={{ fontSize: "14px", fontWeight: 500, color: "#000000" }}>{item.label}</span>
                   </div>
                   <span style={{ fontSize: "12px", color: "#000000", lineHeight: 1.45 }}>{item.desc}</span>
                 </motion.button>

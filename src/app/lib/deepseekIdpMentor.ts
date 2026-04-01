@@ -1,4 +1,5 @@
 import { deepseekChat } from "./deepseekClient";
+import { isDomesticCourseUrl } from "./domesticCourseUrl";
 
 export type IdpMentorCourseJson = {
   title: string;
@@ -103,6 +104,7 @@ function normalizeCourse(raw: Record<string, unknown>): IdpMentorCourseJson | nu
   if (!title || !provider) return null;
 
   const url = normalizeUrlField(raw.url);
+  if (url && !isDomesticCourseUrl(url)) return null;
 
   return {
     title,
@@ -126,7 +128,7 @@ function normalizeCourse(raw: Record<string, unknown>): IdpMentorCourseJson | nu
 
 const SYSTEM = `Ты персональный ИИ-наставник корпоративного портала «Алроса ИТ». Сотрудник: Александр Иванов, Middle Software Engineer, цель к концу года — уверенный Senior; цели развития на 2026 год, русскоязычная среда.
 
-Сформируй индивидуальный план развития на 6 месяцев и ровно 3 рекомендуемых курса (внутренние корпоративные и/или внешние), с упором на отечественные программы где уместно (Stepik, Практикум, Нетология, корпоративный университет) плюс сильные внешние при необходимости.
+Сформируй индивидуальный план развития на 6 месяцев и ровно 3 рекомендуемых курса. Все три курса — только отечественные: внутренние корпоративные и/или внешние с российских платформ, вузов и колледжей (государственных и коммерческих): онлайн-школы (Нетология, Skillbox, Практикум, Stepik и т.д.), а также по возможности программы ДПО/дистанционные курсы вузов и колледжей на официальных .ru / .edu.ru. Не ограничивайся только «популярными» массовыми курсами — включай академические и вузовские программы, если есть прямые ссылки. Зарубежные MOOC не предлагать; в поле "url" — только допустимые отечественные домены.
 
 Верни ТОЛЬКО JSON-объект:
 {
@@ -164,7 +166,7 @@ export async function fetchIdpMentorPlan(userMessage: string, signal?: AbortSign
       { role: "system", content: SYSTEM },
       {
         role: "user",
-        content: `Запрос сотрудника: «${userMessage.trim()}». Построй план развития на 6 месяцев и три курса с ROI и датами старта.`,
+        content: `Запрос сотрудника: «${userMessage.trim()}». Построй план развития на 6 месяцев и три курса с оценкой окупаемости и датами старта.`,
       },
     ],
     { max_tokens: 3500, temperature: 0.4, signal, response_format: { type: "json_object" } }
@@ -201,7 +203,10 @@ export async function fetchIdpMentorPlan(userMessage: string, signal?: AbortSign
     }
 
     if (courses.length === 0) {
-      return { ok: false, error: "Модель не вернула ни одного курса." };
+      return {
+        ok: false,
+        error: "Модель не вернула ни одного курса с допустимой отечественной ссылкой (.ru, Stepik, Яндекс Практикум и т.п.).",
+      };
     }
 
     return {

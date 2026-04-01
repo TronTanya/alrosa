@@ -5,8 +5,20 @@ import { Breadcrumb } from "../Breadcrumb";
 import { AlrosaLogo } from "../AlrosaBrand";
 import { useMobileNav } from "../../contexts/MobileNavContext";
 import { brandIcon } from "../../lib/brandIcons";
+import { L_D_DIRECTOR_TITLE } from "../../lib/hrLdLabels";
+import { HR_DECISIONS_UPDATED } from "../../lib/hrApplicationStatusStorage";
+import {
+  setHrPendingNotifAckedCount,
+  setOneRead,
+  setAllRead,
+  SITE_NOTIF_READS_HR,
+  SITE_NOTIFICATIONS_CHANGED,
+} from "../../lib/siteNotificationsStorage";
+import { TRAINING_APPLICATIONS_UPDATED } from "../../lib/trainingApplicationsStorage";
+import { countHrPendingApplications } from "../../lib/hrPendingApplicationsCount";
 import {
   HR_TOPBAR_NOTIFICATIONS_INITIAL,
+  buildHrTopbarNotificationList,
   type HrTopbarNotifIcon,
 } from "./hrTopbarNotifications";
 
@@ -26,7 +38,7 @@ function HrNotifGlyph({ kind }: { kind: HrTopbarNotifIcon }) {
 export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbarProps) {
   const [searchVal, setSearchVal] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(() => [...HR_TOPBAR_NOTIFICATIONS_INITIAL]);
+  const [notifications, setNotifications] = useState(() => buildHrTopbarNotificationList());
   const notifWrapRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,12 +56,32 @@ export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbar
     return () => document.removeEventListener("mousedown", onDocDown);
   }, []);
 
+  useEffect(() => {
+    const sync = () => setNotifications(buildHrTopbarNotificationList());
+    sync();
+    window.addEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
+    window.addEventListener(HR_DECISIONS_UPDATED, sync);
+    window.addEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    return () => {
+      window.removeEventListener(TRAINING_APPLICATIONS_UPDATED, sync);
+      window.removeEventListener(HR_DECISIONS_UPDATED, sync);
+      window.removeEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    };
+  }, []);
+
   const markRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    if (id === "2") setHrPendingNotifAckedCount(countHrPendingApplications());
+    else setOneRead(SITE_NOTIF_READS_HR, id, true);
+    setNotifications(buildHrTopbarNotificationList());
   };
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setHrPendingNotifAckedCount(countHrPendingApplications());
+    setAllRead(
+      SITE_NOTIF_READS_HR,
+      HR_TOPBAR_NOTIFICATIONS_INITIAL.map((n) => n.id),
+    );
+    setNotifications(buildHrTopbarNotificationList());
   };
 
   return (
@@ -89,15 +121,15 @@ export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbar
 
       <div className="topbar-trailing" style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "auto" }}>
         {[
-          { icon: FileDown, label: "Excel", color: "#000000", fn: onExportExcel },
-          { icon: FileDown, label: "PDF", color: "#e3000b", fn: onExportPDF },
+          { icon: FileDown, label: "Таблица", color: "#000000", fn: onExportExcel },
+          { icon: FileDown, label: "В PDF", color: "#e3000b", fn: onExportPDF },
           { icon: RefreshCw, label: "Outlook", color: "#000000", fn: onSyncOutlook },
         ].map(({ icon: Icon, label, color, fn }) => (
           <button
             key={label}
             type="button"
             onClick={fn}
-            style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 11px", borderRadius: "9px", background: `${color}12`, border: `1px solid ${color}28`, color, fontSize: "11.5px", fontWeight: "600", cursor: "pointer", fontFamily: "var(--font-sans)", transition: "all .15s" }}
+            style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 11px", borderRadius: "9px", background: `${color}12`, border: `1px solid ${color}28`, color, fontSize: "11.5px", fontWeight: "500", cursor: "pointer", fontFamily: "var(--font-sans)", transition: "all .15s" }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${color}22`; }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${color}12`; }}
           >
@@ -176,7 +208,7 @@ export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbar
                   gap: "12px",
                 }}
               >
-                <span style={{ fontSize: "14px", fontWeight: 800, color: "#000000" }}>Уведомления</span>
+                <span style={{ fontSize: "14px", fontWeight: 600, color: "#000000" }}>Уведомления</span>
                 {unreadCount > 0 && (
                   <button
                     type="button"
@@ -187,7 +219,7 @@ export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbar
                       background: "transparent",
                       color: "#e3000b",
                       fontSize: "12px",
-                      fontWeight: 600,
+                      fontWeight: 500,
                       cursor: "pointer",
                       fontFamily: "inherit",
                     }}
@@ -236,7 +268,7 @@ export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbar
                       <HrNotifGlyph kind={n.icon} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "13px", fontWeight: 700, color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 500, color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
                       <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px", lineHeight: 1.45 }}>{n.body}</div>
                       <div style={{ fontSize: "10px", color: "#000000", marginTop: "6px", opacity: 0.75 }}>{n.time}</div>
                     </div>
@@ -285,12 +317,12 @@ export function HRTopbar({ onExportExcel, onExportPDF, onSyncOutlook }: HRTopbar
         {/* Avatar — Anna Smirnova */}
         <div style={{ display: "flex", alignItems: "center", gap: "9px", cursor: "pointer", padding: "4px 8px", borderRadius: "11px" }}>
           <div style={{ position: "relative" }}>
-            <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,#e3000b,#81d0f5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color: "#000000", boxShadow: "0 0 12px rgba(227,0,11,.35)" }}>АС</div>
+            <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,#e3000b,#81d0f5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "500", color: "#000000", boxShadow: "0 0 12px rgba(227,0,11,.35)" }}>АС</div>
             <div style={{ position: "absolute", bottom: "0", right: "0", width: "9px", height: "9px", borderRadius: "50%", background: "#81d0f5", border: "2px solid #000000", boxShadow: "0 0 6px rgba(129,208,245,.5)" }} />
           </div>
           <div>
-            <div style={{ fontSize: "12.5px", fontWeight: "600", color: "#000000", lineHeight: 1.2 }}>Анна Смирнова</div>
-            <div style={{ fontSize: "10.5px", color: "#000000", lineHeight: 1.2 }}>L&D Директор</div>
+            <div style={{ fontSize: "12.5px", fontWeight: "500", color: "#000000", lineHeight: 1.2 }}>Анна Смирнова</div>
+            <div style={{ fontSize: "10.5px", color: "#000000", lineHeight: 1.2 }}>{L_D_DIRECTOR_TITLE}</div>
           </div>
           <ChevronDown size={13} style={{ color: "#000000" }} />
         </div>

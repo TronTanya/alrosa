@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link, NavLink } from "react-router";
 import {
   LayoutDashboard,
@@ -6,6 +6,7 @@ import {
   BarChart3,
   BrainCircuit,
   BookOpen,
+  GraduationCap,
   Briefcase,
   TrendingUp,
   Calendar,
@@ -18,7 +19,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useMobileNav } from "../../contexts/MobileNavContext";
-import { brandIcon } from "../../lib/brandIcons";
+import { useHrDataRevision } from "../../hooks/useHrDataRevision";
+import { brandIcon, type BrandLucideIcon } from "../../lib/brandIcons";
+import { getHrDashboardMetrics } from "../../lib/hrDashboardMetrics";
+import { HR_GLOSS, L_D_GLOSS } from "../../lib/hrLdLabels";
 
 type NavEntry =
   | { kind: "navlink"; icon: LucideIcon; label: string; badge: string | null; to: string; end?: boolean }
@@ -26,11 +30,12 @@ type NavEntry =
 
 const navItems: NavEntry[] = [
   { kind: "navlink", icon: LayoutDashboard, label: "Главная", badge: null, to: "/hr", end: true },
-  { kind: "navlink", icon: BarChart3, label: "HR & Аналитика", badge: "!", to: "/hr/dashboard", end: true },
+  { kind: "navlink", icon: BarChart3, label: `${HR_GLOSS} & Аналитика`, badge: "!", to: "/hr/dashboard", end: true },
   { kind: "navlink", icon: Users, label: "Сотрудники", badge: "312", to: "/hr/employees", end: true },
   { kind: "navlink", icon: UserCog, label: "Траектории развития", badge: "24", to: "/hr/trajectory", end: true },
   { kind: "navlink", icon: BrainCircuit, label: "ИИ-Наставник", badge: null, to: "/hr/mentor", end: true },
   { kind: "navlink", icon: BookOpen, label: "Каталог курсов", badge: null, to: "/hr/catalog", end: true },
+  { kind: "navlink", icon: GraduationCap, label: "Назначение курсов", badge: null, to: "/hr/assign-courses", end: true },
   { kind: "navlink", icon: Briefcase, label: "Заявки", badge: "15", to: "/hr/applications", end: true },
   { kind: "navlink", icon: TrendingUp, label: "Компетенции", badge: null, to: "/hr/competencies", end: true },
   { kind: "navlink", icon: Calendar, label: "Мероприятия", badge: "4", to: "/hr/events", end: true },
@@ -45,7 +50,7 @@ const bottomItems = [
 
 function rowInner(
   isActive: boolean,
-  Icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>,
+  Icon: BrandLucideIcon,
   label: string,
   badge: string | null,
 ) {
@@ -81,7 +86,7 @@ function rowInner(
             alignItems: "center",
             justifyContent: "center",
             fontSize: "10px",
-            fontWeight: "700",
+            fontWeight: "500",
             color: isActive ? "#000000" : "#000000",
             padding: "0 5px",
           }}
@@ -161,23 +166,36 @@ function BottomNavItem({
   );
 }
 
+function formatMln(value: number, fraction = 1): string {
+  return value.toLocaleString("ru-RU", { minimumFractionDigits: fraction, maximumFractionDigits: fraction });
+}
+
 export function HRSidebar() {
   const { open, setOpen } = useMobileNav();
   const close = () => setOpen(false);
+  const dataRev = useHrDataRevision();
+  const m = useMemo(() => {
+    void dataRev;
+    return getHrDashboardMetrics();
+  }, [dataRev]);
+  const planM = m.budgetPlanRub / 1_000_000;
+  const spentM = m.budgetSpentRub / 1_000_000;
+  const remainM = Math.max(0, (m.budgetPlanRub - m.budgetSpentRub) / 1_000_000);
+  const usedPct = Math.min(100, Math.max(0, Math.round((m.budgetSpentRub / m.budgetPlanRub) * 100)));
 
   return (
     <div className={`sidebar employee-sidebar custom-scroll${open ? " sidebar--open" : ""}`}>
       <div
         style={{
           fontSize: "10px",
-          fontWeight: "600",
+          fontWeight: "500",
           letterSpacing: "1.2px",
           color: "#000000",
           textTransform: "uppercase",
           padding: "0 14px 10px",
         }}
       >
-        Навигация HR
+        Навигация {HR_GLOSS}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
@@ -203,10 +221,12 @@ export function HRSidebar() {
           border: "1px solid rgba(129,208,245,0.2)",
         }}
       >
-        <div style={{ fontSize: "11px", color: "#000000", marginBottom: "6px" }}>Бюджет L&amp;D 2026</div>
+        <div style={{ fontSize: "11px", color: "#000000", marginBottom: "6px" }}>Бюджет {L_D_GLOSS} 2026</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: "4px", marginBottom: "8px" }}>
-          <span style={{ fontSize: "22px", fontWeight: "800", color: "#000000" }}>4,8</span>
-          <span style={{ fontSize: "11px", color: "#000000", fontWeight: "600" }}>/ 6 млн ₽</span>
+          <span style={{ fontSize: "22px", fontWeight: "600", color: "#000000" }}>{formatMln(spentM)}</span>
+          <span style={{ fontSize: "11px", color: "#000000", fontWeight: "500" }}>
+            / {formatMln(planM)} млн ₽
+          </span>
         </div>
         <div
           style={{
@@ -218,7 +238,7 @@ export function HRSidebar() {
         >
           <div
             style={{
-              width: "80%",
+              width: `${usedPct}%`,
               height: "100%",
               background: "linear-gradient(90deg, #e3000b, #81d0f5)",
               borderRadius: "4px",
@@ -226,14 +246,16 @@ export function HRSidebar() {
             }}
           />
         </div>
-        <div style={{ fontSize: "10px", color: "#000000", marginTop: "6px" }}>Использовано 80% · 1,2 млн остаток</div>
+        <div style={{ fontSize: "10px", color: "#000000", marginTop: "6px" }}>
+          Использовано {usedPct}% · {formatMln(remainM)} млн остаток
+        </div>
       </div>
 
       <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "2px" }}>
         <div
           style={{
             fontSize: "10px",
-            fontWeight: "600",
+            fontWeight: "500",
             letterSpacing: "1.2px",
             color: "#000000",
             textTransform: "uppercase",
@@ -255,7 +277,7 @@ export function HRSidebar() {
           letterSpacing: "0.5px",
         }}
       >
-        ЕСО v4.2.1 · HR · 2026
+        ЕСО v4.2.1 · {HR_GLOSS} · 2026
       </div>
     </div>
   );

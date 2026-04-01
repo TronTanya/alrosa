@@ -1,5 +1,7 @@
 import React from "react";
+import { Link } from "react-router";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, PolarRadiusAxis } from "recharts";
+import { ROUTE_PATHS } from "../routePaths";
 
 /* ─── Circular Progress ─── */
 function CircularProgress({
@@ -54,7 +56,7 @@ function CircularProgress({
             flexDirection: "column",
           }}
         >
-          <span style={{ fontSize: "15px", fontWeight: "800", color: "#000000", lineHeight: 1, fontFamily: "var(--font-sans)" }}>
+          <span style={{ fontSize: "15px", fontWeight: "600", color: "#000000", lineHeight: 1, fontFamily: "var(--font-sans)" }}>
             {value}
           </span>
           <span style={{ fontSize: "8px", color: "#000000", lineHeight: 1 }}>%</span>
@@ -79,16 +81,16 @@ function CircularProgress({
 /* ─── Competency Card ─── */
 const skills = [
   { label: "Технические навыки", value: 78, color: "#81d0f5" },
-  { label: "Soft Skills", value: 83, color: "#e3000b" },
+  { label: "Гибкие навыки", value: 83, color: "#e3000b" },
   { label: "Лидерство", value: 65, color: "#000000" },
   { label: "Аналитика данных", value: 71, color: "#81d0f5" },
 ];
 
 const skillTags = [
   { tag: "Python", level: "Senior" },
-  { tag: "ML/AI", level: "Middle" },
-  { tag: "Backend", level: "Senior" },
-  { tag: "DevOps", level: "Junior" },
+  { tag: "ML/ИИ", level: "Middle" },
+  { tag: "Бэкенд", level: "Senior" },
+  { tag: "Девопс", level: "Junior" },
   { tag: "SQL", level: "Senior" },
   { tag: "Архитектура", level: "Middle" },
 ];
@@ -105,7 +107,7 @@ function CompetencyCard() {
         }}
       >
         <div>
-          <div style={{ fontSize: "14px", fontWeight: "700", color: "#000000", fontFamily: "var(--font-sans)" }}>
+          <div style={{ fontSize: "14px", fontWeight: "500", color: "#000000", fontFamily: "var(--font-sans)" }}>
             Текущий уровень компетенций
           </div>
           <div style={{ fontSize: "11px", color: "#000000", marginTop: "2px", fontFamily: "var(--font-sans)" }}>
@@ -119,7 +121,7 @@ function CompetencyCard() {
             background: "linear-gradient(135deg, rgba(227,0,11,0.08), rgba(129,208,245,0.14))",
             border: "1px solid rgba(129,208,245,0.35)",
             fontSize: "11px",
-            fontWeight: "600",
+            fontWeight: "500",
             color: "#000000",
             fontFamily: "var(--font-sans)",
           }}
@@ -185,7 +187,7 @@ function CompetencyCard() {
                       ? "rgba(227,0,11,0.1)"
                       : "rgba(0,0,0,0.06)",
                   color: s.level === "Senior" ? "#000000" : s.level === "Middle" ? "#e3000b" : "#000000",
-                  fontWeight: "600",
+                  fontWeight: "500",
                 }}
               >
                 {s.level}
@@ -200,11 +202,11 @@ function CompetencyCard() {
 
 /* ─── Radar Chart ─── */
 const radarData = [
-  { subject: "ML/AI", value: 72, target: 90 },
-  { subject: "Backend", value: 85, target: 90 },
-  { subject: "DevOps", value: 60, target: 90 },
-  { subject: "Frontend", value: 78, target: 90 },
-  { subject: "Data Eng", value: 65, target: 90 },
+  { subject: "ML/ИИ", value: 72, target: 90 },
+  { subject: "Бэкенд", value: 85, target: 90 },
+  { subject: "Девопс", value: 60, target: 90 },
+  { subject: "Фронтенд", value: 78, target: 90 },
+  { subject: "Данные", value: 65, target: 90 },
   { subject: "Безопасность", value: 55, target: 90 },
 ];
 
@@ -245,7 +247,7 @@ function RadarChartCard() {
         }}
       >
         <div>
-          <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", fontFamily: "var(--font-sans)" }}>
+          <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", fontFamily: "var(--font-sans)" }}>
             Карта навыков (Radar)
           </div>
           <div style={{ fontSize: "11px", color: "#000000", marginTop: "2px", fontFamily: "var(--font-sans)" }}>
@@ -282,7 +284,13 @@ function RadarChartCard() {
           />
           <PolarAngleAxis
             dataKey="subject"
-            tick={CustomTick as React.ComponentType<unknown>}
+            tick={(props) => (
+              <CustomTick
+                x={props.x}
+                y={props.y}
+                payload={props.payload as { value: string } | undefined}
+              />
+            )}
           />
           <PolarRadiusAxis
             angle={90}
@@ -315,6 +323,13 @@ function RadarChartCard() {
 }
 
 /* ─── Main Left Panel ─── */
+const linkBase: React.CSSProperties = {
+  fontSize: "10px",
+  fontWeight: 500,
+  fontFamily: "var(--font-sans)",
+  textDecoration: "none",
+};
+
 export function LeftPanel() {
   return (
     <div
@@ -328,6 +343,27 @@ export function LeftPanel() {
     >
       <CompetencyCard />
       <RadarChartCard />
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "6px",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "4px 2px 0",
+        }}
+      >
+        <span style={{ fontSize: "10px", color: "#000000", fontFamily: "var(--font-sans)" }}>
+          Те же показатели, что в
+        </span>
+        <Link to={ROUTE_PATHS.employeeAnalytics} style={{ ...linkBase, color: "#e3000b" }}>
+          аналитике
+        </Link>
+        <span style={{ fontSize: "10px", color: "#000000" }}>и</span>
+        <Link to={ROUTE_PATHS.employeeCourses} style={{ ...linkBase, color: "#0284c7" }}>
+          моих курсах
+        </Link>
+      </div>
     </div>
   );
 }

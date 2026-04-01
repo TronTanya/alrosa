@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router";
 import { motion } from "motion/react";
 import { Award, Download, ExternalLink, ShieldCheck, Upload, Trash2, FileText, ImageIcon } from "lucide-react";
 import {
@@ -10,6 +11,9 @@ import {
   type StoredUserCertificate,
 } from "../lib/userCertificatesStorage";
 import { downloadDataUrlFile } from "../lib/openDataUrlFile";
+import { ROUTE_PATHS } from "../routePaths";
+import { teamMembersForSearch } from "../data/teamSearchMembers";
+import { getRegistryCertificatesByEmployeeName } from "../data/hrCertificatesRegistry";
 
 const MAX_FILE_MB = 2.3;
 
@@ -145,7 +149,7 @@ export function CertificatesPage() {
             <h1
               style={{
                 fontSize: "21px",
-                fontWeight: "800",
+                fontWeight: "600",
                 color: "#000000",
                 letterSpacing: "-0.4px",
                 margin: 0,
@@ -156,9 +160,73 @@ export function CertificatesPage() {
             </h1>
             <p style={{ fontSize: "13px", color: "#000000", margin: "8px 0 0", lineHeight: 1.55, maxWidth: "720px" }}>
               Подтверждения пройденного обучения и квалификаций. Ниже можно загрузить свои PDF или изображения — файлы
-              хранятся локально в браузере (демо без сервера).
+              хранятся локально в браузере (демо без сервера). Сертификаты коллег берутся из корпоративного реестра (как у HR
+              (кадры)).
             </p>
           </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.04 }}
+        style={{
+          marginBottom: "20px",
+          padding: "18px 20px",
+          borderRadius: "16px",
+          border: "1px solid rgba(129,208,245,0.14)",
+          background: "rgba(129,208,245,0.04)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
+          <Award size={18} style={{ color: "#000000" }} />
+          <span style={{ fontSize: "14px", fontWeight: "500", color: "#000000" }}>Сертификаты коллег по команде</span>
+          <Link
+            to={ROUTE_PATHS.employeeTeam}
+            style={{ fontSize: "12px", fontWeight: "500", color: "#0284c7", textDecoration: "none" }}
+          >
+            Открыть «Команда»
+          </Link>
+        </div>
+        <p style={{ fontSize: "12px", color: "#000000", margin: "0 0 14px", lineHeight: 1.5 }}>
+          Демо-данные совпадают с реестром HR (кадры): у каждого сотрудника из списка отображаются учтённые программы и статусы.
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 240px), 1fr))",
+            gap: "12px",
+          }}
+        >
+          {teamMembersForSearch.map((m) => {
+            const rows = getRegistryCertificatesByEmployeeName(m.name);
+            return (
+              <div
+                key={m.email}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.5)",
+                  border: "1px solid rgba(129,208,245,0.12)",
+                }}
+              >
+                <div style={{ fontSize: "12px", fontWeight: "600", color: "#000000", marginBottom: "8px" }}>{m.name}</div>
+                {rows.length === 0 ? (
+                  <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.55)" }}>Нет записей в реестре.</div>
+                ) : (
+                  <ul style={{ margin: 0, padding: "0 0 0 14px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {rows.map((r) => (
+                      <li key={r.id} style={{ fontSize: "11px", color: "#000000", lineHeight: 1.4 }}>
+                        <span style={{ fontWeight: "500" }}>{r.title}</span>
+                        <span style={{ display: "block", opacity: 0.8 }}>{r.issuer}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </div>
       </motion.div>
 
@@ -176,7 +244,7 @@ export function CertificatesPage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
           <Upload size={18} style={{ color: "#000000" }} />
-          <span style={{ fontSize: "14px", fontWeight: "700", color: "#000000" }}>Загрузить свой сертификат</span>
+          <span style={{ fontSize: "14px", fontWeight: "500", color: "#000000" }}>Загрузить свой сертификат</span>
         </div>
         <p style={{ fontSize: "12px", color: "#000000", margin: "0 0 14px", lineHeight: 1.5 }}>
           PDF, PNG, JPG или WebP, до {MAX_FILE_MB} МБ на файл.
@@ -204,7 +272,7 @@ export function CertificatesPage() {
               background: "linear-gradient(135deg, rgba(129,208,245,0.25), rgba(129,208,245,0.12))",
               color: "#000000",
               fontSize: "13px",
-              fontWeight: "700",
+              fontWeight: "500",
               cursor: "pointer",
               fontFamily: "inherit",
             }}
@@ -311,7 +379,7 @@ export function CertificatesPage() {
                   background: "linear-gradient(135deg, #81d0f5, #81d0f5)",
                   color: "#000000",
                   fontSize: "13px",
-                  fontWeight: "700",
+                  fontWeight: "500",
                   cursor: "pointer",
                   fontFamily: "inherit",
                 }}
@@ -328,7 +396,7 @@ export function CertificatesPage() {
                   background: "transparent",
                   color: "#000000",
                   fontSize: "13px",
-                  fontWeight: "600",
+                  fontWeight: "500",
                   cursor: "pointer",
                   fontFamily: "inherit",
                 }}
@@ -387,7 +455,7 @@ export function CertificatesPage() {
                 <Award size={24} style={{ color: "#000000" }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ fontSize: "15px", fontWeight: "800", color: "#000000", margin: 0, lineHeight: 1.35 }}>{c.title}</h2>
+                <h2 style={{ fontSize: "15px", fontWeight: "600", color: "#000000", margin: 0, lineHeight: 1.35 }}>{c.title}</h2>
                 <p style={{ fontSize: "12px", color: "#000000", margin: "6px 0 0" }}>{c.issuer}</p>
               </div>
             </div>
@@ -403,11 +471,11 @@ export function CertificatesPage() {
             >
               <div>
                 <div style={{ marginBottom: "4px" }}>Выдан</div>
-                <div style={{ color: "#000000", fontWeight: "600" }}>{c.issued}</div>
+                <div style={{ color: "#000000", fontWeight: "500" }}>{c.issued}</div>
               </div>
               <div>
                 <div style={{ marginBottom: "4px" }}>Действителен до</div>
-                <div style={{ color: "#000000", fontWeight: "600" }}>{c.expires}</div>
+                <div style={{ color: "#000000", fontWeight: "500" }}>{c.expires}</div>
               </div>
             </div>
 
@@ -425,7 +493,7 @@ export function CertificatesPage() {
               }}
             >
               <ShieldCheck size={14} style={{ color: "#000000", flexShrink: 0 }} />
-              <span style={{ wordBreak: "break-all" }}>ID: {c.credentialId}</span>
+              <span style={{ wordBreak: "break-all" }}>Идентификатор: {c.credentialId}</span>
             </div>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "auto" }}>
@@ -443,7 +511,7 @@ export function CertificatesPage() {
                   background: "rgba(129,208,245,.04)",
                   color: "#000000",
                   fontSize: "12px",
-                  fontWeight: "700",
+                  fontWeight: "500",
                   cursor: "not-allowed",
                   fontFamily: "inherit",
                 }}
@@ -463,7 +531,7 @@ export function CertificatesPage() {
                   background: "transparent",
                   color: "#000000",
                   fontSize: "12px",
-                  fontWeight: "600",
+                  fontWeight: "500",
                   cursor: "pointer",
                   fontFamily: "inherit",
                 }}
@@ -535,11 +603,11 @@ function UserCertificateCard({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
-            <h2 style={{ fontSize: "15px", fontWeight: "800", color: "#000000", margin: 0, lineHeight: 1.35 }}>{cert.title}</h2>
+            <h2 style={{ fontSize: "15px", fontWeight: "600", color: "#000000", margin: 0, lineHeight: 1.35 }}>{cert.title}</h2>
             <span
               style={{
                 fontSize: "9px",
-                fontWeight: "800",
+                fontWeight: "600",
                 padding: "3px 8px",
                 borderRadius: "20px",
                 background: "rgba(129,208,245,0.15)",
@@ -567,11 +635,11 @@ function UserCertificateCard({
       >
         <div>
           <div style={{ marginBottom: "4px" }}>Выдан</div>
-          <div style={{ color: "#000000", fontWeight: "600" }}>{issued}</div>
+          <div style={{ color: "#000000", fontWeight: "500" }}>{issued}</div>
         </div>
         <div>
           <div style={{ marginBottom: "4px" }}>Файл</div>
-          <div style={{ color: "#000000", fontWeight: "600", wordBreak: "break-all" }}>{cert.fileName}</div>
+          <div style={{ color: "#000000", fontWeight: "500", wordBreak: "break-all" }}>{cert.fileName}</div>
         </div>
       </div>
 
@@ -589,7 +657,7 @@ function UserCertificateCard({
         }}
       >
         {isImage ? <ImageIcon size={14} style={{ color: "#000000", flexShrink: 0 }} /> : <FileText size={14} style={{ color: "#000000", flexShrink: 0 }} />}
-        <span>ID: {cert.id}</span>
+        <span>Идентификатор: {cert.id}</span>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "auto" }}>
@@ -606,7 +674,7 @@ function UserCertificateCard({
             background: "rgba(129,208,245,.1)",
             color: "#000000",
             fontSize: "12px",
-            fontWeight: "700",
+            fontWeight: "500",
             cursor: "pointer",
             fontFamily: "inherit",
           }}
@@ -627,7 +695,7 @@ function UserCertificateCard({
             background: "rgba(255,80,80,0.08)",
             color: "#FF8A8A",
             fontSize: "12px",
-            fontWeight: "600",
+            fontWeight: "500",
             cursor: "pointer",
             fontFamily: "inherit",
           }}

@@ -42,7 +42,7 @@ export const adminNotificationRulesSeed: AdminNotificationRuleRow[] = [
   },
   {
     id: "n-4",
-    name: "Еженедельная сводка L&D",
+    name: "Еженедельная сводка L&D (обучение и развитие)",
     channel: "email",
     audience: "Кураторы обучения",
     status: "active",
@@ -60,7 +60,7 @@ export const adminNotificationRulesSeed: AdminNotificationRuleRow[] = [
   },
   {
     id: "n-6",
-    name: "Истечение лицензии GigaChat",
+    name: "Истечение лицензии Яндекс Алиса",
     channel: "email",
     audience: "ИБ + админы",
     status: "paused",

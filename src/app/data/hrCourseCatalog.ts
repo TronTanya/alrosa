@@ -21,7 +21,7 @@ const internalPrograms: Omit<HrCourseCatalogRow, "format">[] = [
   {
     id: "int-1",
     title: "Единая среда обучения: администрирование",
-    provider: "Алроса ИТ · L&D",
+    provider: "Алроса ИТ · L&D (обучение и развитие)",
     url: "https://www.alrosa.ru/",
     rating: 4.9,
     reviews: "внутр.",

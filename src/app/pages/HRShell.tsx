@@ -3,8 +3,11 @@ import { Outlet, useNavigate } from "react-router";
 import { HRTopbar } from "../components/hr/HRTopbar";
 import { HRSidebar } from "../components/hr/HRSidebar";
 import { buildHrDashboardSummaryPdfHtml, openPrintableReport } from "../lib/pdfExport";
+import { getHrDashboardMetrics } from "../lib/hrDashboardMetrics";
+import { downloadCsv } from "../lib/hrTableExport";
 import { MobileNavProvider, useMobileNav } from "../contexts/MobileNavContext";
 import { ROUTE_PATHS } from "../routePaths";
+import { HR_LD_SECTION_LABEL } from "../lib/hrLdLabels";
 
 function notify(msg: string) {
   const el = document.createElement("div");
@@ -21,7 +24,7 @@ function notify(msg: string) {
     padding: "12px 18px",
     fontSize: "13px",
     fontFamily: "var(--font-sans)",
-    fontWeight: "600",
+    fontWeight: "500",
     boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 16px rgba(129,208,245,0.2)",
     backdropFilter: "blur(16px)",
     transition: "opacity .3s",
@@ -52,11 +55,31 @@ function HRShellBody() {
       }}
     >
       <HRTopbar
-        onExportExcel={() => notify("📊 Экспорт в Excel начат...")}
-        onExportPDF={() => openPrintableReport("HR / L&D — сводный отчёт", buildHrDashboardSummaryPdfHtml())}
+        onExportExcel={() => {
+          const m = getHrDashboardMetrics();
+          const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+          downloadCsv(`hr-ld-dashboard-${stamp}.csv`, ["Показатель", "Значение"], [
+            ["Сотрудников в штате", String(m.totalEmployees)],
+            ["В обучении", String(m.inLearning)],
+            ["В плане обучения", String(m.inPlan)],
+            ["Не в плане", String(m.notInPlan)],
+            ["Средний % плана", m.avgPlanPctDisplay],
+            ["Бюджет (оценка), ₽", String(m.budgetSpentRub)],
+            ["План бюджета, ₽", String(m.budgetPlanRub)],
+            ["Остаток бюджета, %", String(m.budgetRemainPct)],
+            ["Автообработка заявок, %", String(m.autoProcessPct)],
+            ["Заявок в очереди", String(m.pendingApplications)],
+            ["Экономия времени HR, ч/мес", String(m.hrHoursSaved)],
+            ["Срез сформирован", m.generatedAt],
+          ]);
+          notify("Таблица сформирована из актуального среза справочника и заявок.");
+        }}
+        onExportPDF={() =>
+          openPrintableReport(`${HR_LD_SECTION_LABEL} — сводный отчёт`, buildHrDashboardSummaryPdfHtml())
+        }
         onSyncOutlook={() => {
-          notify("📅 Открываем «Мой календарь»: войдите в Microsoft для загрузки встреч.");
           navigate(ROUTE_PATHS.employeeCalendar);
+          notify("Открыт календарь. Синхронизация с Outlook — в планах интеграции.");
         }}
       />
 

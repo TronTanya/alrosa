@@ -73,7 +73,7 @@
 
 .courses-panel__title {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
   margin: 0 0 8px;
   color: #000000;
 }
@@ -87,7 +87,7 @@
 
 .courses-section-label {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--al-dim);
@@ -126,7 +126,7 @@
 
 .courses-status-pill {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 500;
   padding: 4px 10px;
   border-radius: 2px;
   background: rgba(227, 0, 11, 0.14);
@@ -150,7 +150,7 @@
   padding: 8px 14px;
   border-radius: 2px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
@@ -224,7 +224,7 @@
 
 .courses-match-pill {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0.04em;
   color: #ffffff;
   padding: 4px 10px;
@@ -274,7 +274,7 @@
 
 .courses-ai-reason__lead {
   color: #e3000b;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .courses-progress {

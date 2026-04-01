@@ -49,7 +49,7 @@ export const adminServersSeed: AdminServerRow[] = [
   {
     id: "srv-ai",
     name: "eso-ai-gw-01",
-    role: "Прокси GigaChat",
+    role: "Прокси Яндекс Алиса",
     zone: "Зона A · prod",
     ip: "10.42.1.30",
     cpuPct: 31,

@@ -14,8 +14,9 @@
   --font-accent: "Times New Roman", Times, "Liberation Serif", serif;
   --br-font-light: 300;
   --br-font-regular: 400;
-  --br-font-demi: 600;
-  --br-font-bold: 700;
+  /* Без «полужирного» 600: акценты — medium 500, заголовки — 600 */
+  --br-font-demi: 500;
+  --br-font-bold: 600;
 }
 
 html {

@@ -113,7 +113,7 @@
   padding: 10px 14px; border-radius: 12px;
   cursor: pointer; transition: all 0.2s ease;
   color: #000000;
-  font-size: 14px; font-weight: 600;
+  font-size: 14px; font-weight: 500;
   position: relative;
 }
 .nav-item:hover {
@@ -125,30 +125,6 @@
   color: #000000;
   border: 1px solid rgba(129, 208, 245, 0.45);
   box-shadow: 0 2px 12px rgba(227, 0, 11, 0.12);
-}
-
-/* Action chip */
-.action-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 40px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.03);
-  color: #000000;
-  font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all 0.2s ease;
-  white-space: nowrap;
-}
-.action-chip:hover {
-  background: rgba(227, 0, 11, 0.08);
-  border-color: rgba(227, 0, 11, 0.35);
-  color: #e3000b;
-  box-shadow: 0 2px 12px rgba(227, 0, 11, 0.12);
-}
-.action-chip.primary {
-  background: linear-gradient(135deg, rgba(227, 0, 11, 0.12), rgba(129, 208, 245, 0.15));
-  border-color: rgba(0, 0, 0, 0.68);
-  color: #000000;
-  box-shadow: 0 2px 16px rgba(227, 0, 11, 0.1);
 }
 
 /* Course card */
@@ -216,7 +192,7 @@
   width: 16px; height: 16px;
   border-radius: 50%;
   background: linear-gradient(135deg, #e3000b, rgba(227, 0, 11, 0.72));
-  font-size: 9px; font-weight: 700;
+  font-size: 9px; font-weight: 500;
   color: #ffffff;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid #ffffff;
@@ -541,57 +517,9 @@
   }
 }
 
-/* Чат наставника открывается с кнопки «?» — одна колонка контента */
+/* Одна колонка контента личного кабинета */
 .cabinet-grid--mentor-fab {
   grid-template-columns: 1fr;
-}
-
-/* Плавающая кнопка цифрового наставника */
-.mentor-fab {
-  position: fixed;
-  z-index: 1000;
-  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
-  right: calc(22px + env(safe-area-inset-right, 0px));
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.95);
-  background: linear-gradient(145deg, #e3000b, #81d0f5);
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 800;
-  font-family: var(--font-sans);
-  line-height: 1;
-  cursor: pointer;
-  box-shadow:
-    0 6px 24px rgba(227, 0, 11, 0.35),
-    0 4px 20px rgba(129, 208, 245, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.mentor-fab:hover {
-  transform: scale(1.06);
-  box-shadow:
-    0 8px 28px rgba(227, 0, 11, 0.4),
-    0 6px 24px rgba(129, 208, 245, 0.45);
-}
-
-.mentor-fab:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 3px rgba(129, 208, 245, 0.55),
-    0 6px 24px rgba(227, 0, 11, 0.35);
-}
-
-@media (max-width: 1023px) {
-  .mentor-fab {
-    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-    right: calc(16px + env(safe-area-inset-right, 0px));
-  }
 }
 
 .mentor-chat-backdrop {
@@ -606,17 +534,19 @@
 .mentor-chat-panel {
   position: fixed;
   z-index: 1101;
-  /* Не перекрываем липкий topbar (~60px) */
+  /* Не перекрываем липкий topbar (~60px); высота по контенту, без пустоты на пол-экрана */
   top: max(60px, env(safe-area-inset-top, 0px));
   right: 0;
-  bottom: 0;
+  bottom: auto;
   width: min(460px, 100vw);
   max-width: 100%;
+  max-height: calc(100vh - max(60px, env(safe-area-inset-top, 0px)) - 12px);
   background: rgba(255, 255, 255, 0.98);
   box-shadow: -12px 0 48px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
   animation: mentor-panel-in 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
@@ -632,8 +562,9 @@
 }
 
 .mentor-chat-panel__scroll {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: calc(100vh - max(60px, env(safe-area-inset-top, 0px)) - 12px);
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));

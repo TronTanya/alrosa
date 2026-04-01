@@ -1,6 +1,5 @@
 import React, { ReactNode } from "react";
 import { motion } from "motion/react";
-import { useLocation } from "react-router";
 
 /* Direction-aware variants based on route order */
 const ROUTE_ORDER: Record<string, number> = {
@@ -17,7 +16,6 @@ const ROUTE_ORDER: Record<string, number> = {
   "/manager/mentor": 8,
   "/manager/courses": 8,
   "/manager/competencies": 8,
-  "/manager/calendar": 8,
   "/manager/reports": 8,
   "/manager/achievements": 8,
   "/team": 8,
@@ -29,6 +27,7 @@ const ROUTE_ORDER: Record<string, number> = {
   "/hr/trajectory": 11,
   "/hr/mentor": 11,
   "/hr/catalog": 11,
+  "/hr/assign-courses": 11,
   "/hr/applications": 11,
   "/hr/competencies": 11,
   "/hr/events": 11,
@@ -67,7 +66,6 @@ const ROUTE_GLOW: Record<string, string> = {
   "/manager/mentor": "rgba(129,208,245,.1)",
   "/manager/courses": "rgba(129,208,245,.1)",
   "/manager/competencies": "rgba(129,208,245,.1)",
-  "/manager/calendar": "rgba(129,208,245,.1)",
   "/manager/reports": "rgba(129,208,245,.1)",
   "/manager/achievements": "rgba(129,208,245,.1)",
   "/team": "rgba(129,208,245,.1)",
@@ -79,6 +77,7 @@ const ROUTE_GLOW: Record<string, string> = {
   "/hr/trajectory": "rgba(227,0,11,.08)",
   "/hr/mentor": "rgba(227,0,11,.08)",
   "/hr/catalog": "rgba(227,0,11,.08)",
+  "/hr/assign-courses": "rgba(227,0,11,.08)",
   "/hr/applications": "rgba(227,0,11,.08)",
   "/hr/competencies": "rgba(227,0,11,.08)",
   "/hr/events": "rgba(227,0,11,.08)",
@@ -123,7 +122,7 @@ export function PageTransition({ children, routeKey, prevRoute }: PageTransition
       x: 0,
       transition: {
         duration: 0.28,
-        ease: [0.25, 0.1, 0.25, 1],
+        ease: [0.25, 0.1, 0.25, 1] as const,
       },
     },
     exit: {
@@ -131,7 +130,7 @@ export function PageTransition({ children, routeKey, prevRoute }: PageTransition
       x: dir * -6,
       transition: {
         duration: 0.2,
-        ease: [0.4, 0, 0.6, 1],
+        ease: [0.4, 0, 0.6, 1] as const,
       },
     },
   };

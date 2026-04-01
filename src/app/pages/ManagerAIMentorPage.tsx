@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import { motion } from "motion/react";
 import { BrainCircuit, Sparkles, Zap, MessageSquare, Users, AlertTriangle } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
+import { MANAGER_TEAM_MEMBERS, MANAGER_TEAM_SIZE } from "../data/managerTeamCatalog";
+import { fetchManagerMentorChatReply } from "../lib/yandexOrgInsights";
+import { getYandexLlmTransport } from "../lib/yandexLlmClientInfo";
 
 const QUICK_PROMPTS = [
   "Кто в риске по ИПР?",
@@ -10,31 +14,74 @@ const QUICK_PROMPTS = [
 ];
 
 export function ManagerAIMentorPage() {
+  const llmTransport = getYandexLlmTransport();
+  const chatAbortRef = useRef<AbortController | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const employeeFromUrl = searchParams.get("employee")?.trim() ?? "";
+
+  const contextualMember = useMemo(
+    () => MANAGER_TEAM_MEMBERS.find((m) => m.fullName === employeeFromUrl),
+    [employeeFromUrl],
+  );
+
+  const welcomeText = useMemo(() => {
+    const base = `Привет, Максим! Я анализирую команду из ${MANAGER_TEAM_SIZE} человек. Могу подсказать риски по ИПР, компетенциям и нагрузке. О чём поговорим?`;
+    if (!contextualMember) return base;
+    return `${base}\n\nОткрыт контекст: ${contextualMember.fullName} (${contextualMember.dept}) — последний курс: «${contextualMember.lastCourse}», прогресс обучения ${contextualMember.progress}%. Спросите об этом сотруднике или снимите контекст кнопкой ниже.`;
+  }, [contextualMember]);
+
   const [input, setInput] = useState("");
-  const [msgs, setMsgs] = useState<{ role: "ai" | "user"; text: string }[]>([
-    {
-      role: "ai",
-      text: "Привет, Максим! Я анализирую команду из 15 человек. Могу подсказать риски по ИПР, компетенциям и нагрузке. О чём поговорим?",
-    },
-  ]);
+  const [msgs, setMsgs] = useState<{ role: "ai" | "user"; text: string }[]>([]);
   const [typing, setTyping] = useState(false);
 
-  const send = (text?: string) => {
+  useLayoutEffect(() => {
+    setMsgs([{ role: "ai", text: welcomeText }]);
+  }, [welcomeText]);
+
+  useEffect(() => {
+    return () => {
+      chatAbortRef.current?.abort();
+    };
+  }, []);
+
+  const clearEmployeeContext = () => {
+    setSearchParams({});
+  };
+
+  const send = async (text?: string) => {
     const t = (text ?? input).trim();
     if (!t) return;
-    setMsgs((p) => [...p, { role: "user", text: t }]);
+    chatAbortRef.current?.abort();
+    chatAbortRef.current = new AbortController();
+    const { signal } = chatAbortRef.current;
+    const nextThread = [...msgs, { role: "user" as const, text: t }];
+    setMsgs(nextThread);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMsgs((p) => [
-        ...p,
-        {
-          role: "ai",
-          text: "По демо-данным: Анна Волкова и Ольга Попова отстают по плану; DevOps и Design — ниже среднего по часам. Могу сформировать список встреч 1:1.",
-        },
-      ]);
-    }, 1400);
+    const contextualNote = contextualMember
+      ? `${contextualMember.fullName} (${contextualMember.dept}) — последний курс: «${contextualMember.lastCourse}», прогресс ${contextualMember.progress}%`
+      : undefined;
+    try {
+      const out = await fetchManagerMentorChatReply(nextThread, { signal, contextualNote });
+      if (signal.aborted) return;
+      if (out.ok) {
+        setMsgs((prev) => [...prev, { role: "ai", text: out.content.trim() }]);
+      } else {
+        setMsgs((prev) => [
+          ...prev,
+          {
+            role: "ai",
+            text: `Не удалось получить ответ от Яндекс GPT: ${out.reason}\n\nПроверьте ключ Yandex Cloud: в корне проекта в .env задайте YANDEX_CLOUD_API_KEY (или для теста VITE_YANDEX_CLOUD_API_KEY) и перезапустите npm run dev.`,
+          },
+        ]);
+      }
+    } catch (e) {
+      if (signal.aborted) return;
+      const msg = e instanceof Error ? e.message : String(e);
+      setMsgs((prev) => [...prev, { role: "ai", text: `Ошибка запроса: ${msg}` }]);
+    } finally {
+      if (!signal.aborted) setTyping(false);
+    }
   };
 
   return (
@@ -57,7 +104,7 @@ export function ManagerAIMentorPage() {
               <h1
                 style={{
                   fontSize: "clamp(20px, 2vw, 1.4rem)",
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: "#000000",
                   margin: 0,
                   lineHeight: 1.15,
@@ -76,7 +123,7 @@ export function ManagerAIMentorPage() {
                   background: "rgba(129,208,245,0.14)",
                   border: "1px solid rgba(129,208,245,0.4)",
                   fontSize: "11px",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: "#000000",
                 }}
               >
@@ -89,11 +136,30 @@ export function ManagerAIMentorPage() {
                     boxShadow: "0 0 8px rgba(129,208,245,0.8)",
                   }}
                 />
-                Live · команда 15 чел.
+                Live · команда {MANAGER_TEAM_SIZE} чел.
+              </span>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "4px 10px",
+                  borderRadius: "999px",
+                  background: "rgba(255,204,0,0.18)",
+                  border: "1px solid rgba(255,200,0,0.45)",
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  color: "#000000",
+                }}
+                title="Yandex Foundation Models"
+              >
+                ЯндексGPT
+                {llmTransport === "browser_api_key" ? " · ключ в браузере" : ""}
               </span>
             </div>
             <p style={{ fontSize: "13px", color: "rgba(0,0,0,0.55)", margin: 0, lineHeight: 1.55, maxWidth: "640px" }}>
-              Диалог с цифровым наставником по метрикам команды, рискам и обучению — в контексте руководителя (Максим Лебедев).
+              Ответы формирует модель Yandex Foundation Models по данным команды из портала. Нужен{" "}
+              <code style={{ fontSize: "11px" }}>YANDEX_CLOUD_API_KEY</code> в <code style={{ fontSize: "11px" }}>.env</code> (прокси{" "}
+              <code style={{ fontSize: "11px" }}>/yandex-llm-api</code> в режиме разработки). Диалог в контексте руководителя (Максим Лебедев).
             </p>
           </div>
         </div>
@@ -111,7 +177,7 @@ export function ManagerAIMentorPage() {
               border: "1px solid rgba(0,0,0,0.1)",
               background: "rgba(0,0,0,0.03)",
               fontSize: "12px",
-              fontWeight: 600,
+              fontWeight: 500,
               color: "#000000",
               cursor: "pointer",
               fontFamily: "inherit",
@@ -158,13 +224,47 @@ export function ManagerAIMentorPage() {
             <MessageSquare size={20} color="#ffffff" strokeWidth={2} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "#000000" }}>Чат с наставником команды</div>
-            <div style={{ fontSize: "11px", color: brandIcon.accentCyan, fontWeight: 600 }}>● готов к диалогу</div>
+            <div style={{ fontSize: "14px", fontWeight: 500, color: "#000000" }}>Чат с наставником команды</div>
+            <div style={{ fontSize: "11px", color: brandIcon.accentCyan, fontWeight: 500 }}>● готов к диалогу</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "rgba(0,0,0,0.45)" }}>
-            <Users size={14} /> 15
+            <Users size={14} /> {MANAGER_TEAM_SIZE}
           </div>
         </div>
+
+        {contextualMember && (
+          <div
+            style={{
+              padding: "10px 18px",
+              borderBottom: "1px solid rgba(0,0,0,0.06)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "10px",
+              flexWrap: "wrap",
+              background: "rgba(129,208,245,0.08)",
+            }}
+          >
+            <span style={{ fontSize: "12px", color: "#000000" }}>
+              <strong>Контекст:</strong> {contextualMember.fullName} · {contextualMember.dept}
+            </span>
+            <button
+              type="button"
+              onClick={clearEmployeeContext}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "8px",
+                border: "1px solid rgba(0,0,0,0.12)",
+                background: "#fff",
+                fontSize: "11px",
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              Снять контекст
+            </button>
+          </div>
+        )}
 
         <div style={{ padding: "16px 18px", maxHeight: "min(420px, 50vh)", overflowY: "auto" }} className="custom-scroll">
           {msgs.map((m, i) => (
@@ -179,7 +279,7 @@ export function ManagerAIMentorPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "10px",
-                  fontWeight: 700,
+                  fontWeight: 500,
                   color: "#fff",
                   flexShrink: 0,
                 }}
@@ -204,7 +304,7 @@ export function ManagerAIMentorPage() {
                   justifyContent: "center",
                 }}
               >
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#fff" }}>AI</span>
+                <span style={{ fontSize: "10px", fontWeight: 500, color: "#fff" }}>AI</span>
               </div>
               <div
                 style={{
@@ -281,9 +381,9 @@ export function ManagerAIMentorPage() {
           <div key={c.label} className="glass-card-md" style={{ padding: "12px 14px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
               <c.icon size={16} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} />
-              <span style={{ fontSize: "11px", fontWeight: 600, color: "rgba(0,0,0,0.55)" }}>{c.label}</span>
+              <span style={{ fontSize: "11px", fontWeight: 500, color: "rgba(0,0,0,0.55)" }}>{c.label}</span>
             </div>
-            <div style={{ fontSize: "20px", fontWeight: 800, color: "#000000" }}>{c.val}</div>
+            <div style={{ fontSize: "20px", fontWeight: 600, color: "#000000" }}>{c.val}</div>
             <div style={{ fontSize: "10px", color: "rgba(0,0,0,0.45)", marginTop: "2px" }}>{c.sub}</div>
           </div>
         ))}

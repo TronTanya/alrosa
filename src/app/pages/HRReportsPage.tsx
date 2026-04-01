@@ -3,12 +3,16 @@ import { motion } from "motion/react";
 import { Download, FileText, Search } from "lucide-react";
 import {
   HR_REPORTS_TOTAL,
-  hrReportsCatalog,
+  getLiveHrReportRows,
   type HrReportCategory,
   type HrReportRow,
 } from "../data/hrReportsCatalog";
-import { downloadCsv, openPrintableDocument } from "../lib/hrTableExport";
+import { buildReportDetailCsv } from "../lib/hrReportsData";
+import { buildHrReportDetailHtml, buildHrReportsIndexHtml } from "../lib/hrReportsPdfHtml";
+import { openPrintableReport } from "../lib/pdfExport";
+import { downloadCsv } from "../lib/hrTableExport";
 import { brandIcon } from "../lib/brandIcons";
+import { L_D_GLOSS } from "../lib/hrLdLabels";
 
 const REPORT_EXPORT_HEADERS = ["Отчёт", "Раздел", "Период", "Формат", "Обновлён", "Размер"] as const;
 
@@ -26,12 +30,7 @@ function exportReportsExcel(filename: string, list: HrReportRow[]): void {
 }
 
 function exportReportsPdf(title: string, subtitle: string | undefined, list: HrReportRow[]): void {
-  openPrintableDocument({
-    title,
-    subtitle,
-    headers: [...REPORT_EXPORT_HEADERS],
-    rows: list.map(reportRowToStrings),
-  });
+  openPrintableReport(title, buildHrReportsIndexHtml(list, subtitle ?? ""));
 }
 
 const categoryFilters: { val: HrReportCategory | "all"; label: string }[] = [
@@ -53,9 +52,11 @@ export function HRReportsPage() {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<HrReportCategory | "all">("all");
 
+  const catalogLive = getLiveHrReportRows();
+
   const rows = useMemo(() => {
     const qq = q.trim().toLowerCase();
-    return hrReportsCatalog.filter((r) => {
+    return catalogLive.filter((r) => {
       const matchQ =
         !qq ||
         r.title.toLowerCase().includes(qq) ||
@@ -64,7 +65,7 @@ export function HRReportsPage() {
       const matchC = category === "all" || r.category === category;
       return matchQ && matchC;
     });
-  }, [q, category]);
+  }, [q, category, catalogLive]);
 
   return (
     <div className="employee-tab-ornament">
@@ -104,7 +105,7 @@ export function HRReportsPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -112,7 +113,8 @@ export function HRReportsPage() {
                 </span>
               </div>
               <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "760px" }}>
-                Готовые выгрузки для L&amp;D и руководства: экспорт списка в Excel (CSV) и печать в PDF через диалог браузера.
+                PDF и CSV по каждому отчёту строятся из актуального справочника сотрудников, заявок (localStorage) и
+                мероприятий L&amp;D. В диалоге печати выберите «Сохранить как PDF».
               </p>
             </div>
           </div>
@@ -190,21 +192,21 @@ export function HRReportsPage() {
                   background: "#e8e8e8",
                   color: "#000000",
                   fontSize: "12px",
-                  fontWeight: 700,
+                  fontWeight: 500,
                   cursor: rows.length === 0 ? "not-allowed" : "pointer",
                   opacity: rows.length === 0 ? 0.45 : 1,
                   fontFamily: "var(--font-sans)",
                 }}
               >
                 <Download size={14} color="#000000" strokeWidth={brandIcon.sw} />
-                Excel
+                Таблица
               </button>
               <button
                 type="button"
                 disabled={rows.length === 0}
                 onClick={() =>
                   exportReportsPdf(
-                    "Отчёты L&D",
+                    `Отчёты ${L_D_GLOSS}`,
                     `Выгрузка: ${rows.length} поз. · фильтр: ${category === "all" ? "все разделы" : category}`,
                     rows,
                   )
@@ -219,14 +221,14 @@ export function HRReportsPage() {
                   background: "rgba(227,0,11,0.06)",
                   color: "#e3000b",
                   fontSize: "12px",
-                  fontWeight: 700,
+                  fontWeight: 500,
                   cursor: rows.length === 0 ? "not-allowed" : "pointer",
                   opacity: rows.length === 0 ? 0.45 : 1,
                   fontFamily: "var(--font-sans)",
                 }}
               >
                 <Download size={14} color="#e3000b" strokeWidth={brandIcon.sw} />
-                PDF
+                В PDF
               </button>
             </div>
           </div>
@@ -248,7 +250,7 @@ export function HRReportsPage() {
                         textAlign: "left",
                         padding: "12px 16px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -271,7 +273,7 @@ export function HRReportsPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 16px", maxWidth: "320px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.title}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.title}</span>
                       </td>
                       <td style={{ padding: "14px 16px" }}>
                         <span
@@ -280,7 +282,7 @@ export function HRReportsPage() {
                             padding: "3px 9px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             color: "#000000",
                             background: chip.bg,
                             border: `1px solid ${chip.border}`,
@@ -290,14 +292,17 @@ export function HRReportsPage() {
                         </span>
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000", whiteSpace: "nowrap" }}>{r.period}</td>
-                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "700", color: "#000000" }}>{r.format}</td>
+                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "500", color: "#000000" }}>{r.format}</td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000", whiteSpace: "nowrap" }}>{r.updatedAt}</td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.sizeLabel}</td>
                       <td style={{ padding: "14px 16px" }}>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
                           <button
                             type="button"
-                            onClick={() => exportReportsExcel(`report-${r.id}-${stampYyyymmdd()}.csv`, [r])}
+                            onClick={() => {
+                              const { headers, rows: dataRows } = buildReportDetailCsv(r.id);
+                              downloadCsv(`report-${r.id}-${stampYyyymmdd()}.csv`, headers, dataRows);
+                            }}
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
@@ -308,18 +313,18 @@ export function HRReportsPage() {
                               background: "#e8e8e8",
                               color: "#000000",
                               fontSize: "12px",
-                              fontWeight: 700,
+                              fontWeight: 500,
                               cursor: "pointer",
                               fontFamily: "var(--font-sans)",
                             }}
                           >
                             <Download size={14} color="#000000" strokeWidth={brandIcon.sw} />
-                            Excel
+                            Таблица
                           </button>
                           <button
                             type="button"
                             onClick={() =>
-                              exportReportsPdf(`Отчёт: ${r.title}`, `Период ${r.period} · ${r.format}`, [r])
+                              openPrintableReport(`Отчёт: ${r.title}`, buildHrReportDetailHtml(r.id))
                             }
                             style={{
                               display: "inline-flex",
@@ -331,13 +336,13 @@ export function HRReportsPage() {
                               background: "rgba(227,0,11,0.06)",
                               color: "#e3000b",
                               fontSize: "12px",
-                              fontWeight: 700,
+                              fontWeight: 500,
                               cursor: "pointer",
                               fontFamily: "var(--font-sans)",
                             }}
                           >
                             <Download size={14} color="#e3000b" strokeWidth={brandIcon.sw} />
-                            PDF
+                            В PDF
                           </button>
                         </div>
                       </td>

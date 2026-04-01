@@ -1,6 +1,7 @@
 import React from "react";
-import { Users, TrendingUp, AlertTriangle, Zap } from "lucide-react";
-import { brandIcon } from "../../lib/brandIcons";
+import { Users, AlertTriangle, Zap } from "lucide-react";
+import { brandIcon, type BrandLucideIcon } from "../../lib/brandIcons";
+import { MANAGER_TEAM_SIZE } from "../../data/managerTeamCatalog";
 
 function CircRing({ value, color, size = 64 }: { value: number; color: string; size?: number }) {
   const sw = 5;
@@ -17,7 +18,7 @@ function CircRing({ value, color, size = 64 }: { value: number; color: string; s
           style={{ filter: `drop-shadow(0 0 4px ${color}66)` }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-        <span style={{ fontSize: "13px", fontWeight: "800", color: "#000000", lineHeight: 1 }}>{value}</span>
+        <span style={{ fontSize: "13px", fontWeight: "600", color: "#000000", lineHeight: 1 }}>{value}</span>
         <span style={{ fontSize: "8px", color: "rgba(0,0,0,0.45)", lineHeight: 1 }}>%</span>
       </div>
     </div>
@@ -25,7 +26,7 @@ function CircRing({ value, color, size = 64 }: { value: number; color: string; s
 }
 
 interface KPI {
-  icon: React.ComponentType<{ size?: number }>;
+  icon: BrandLucideIcon;
   label: string;
   value: string;
   sub: string;
@@ -43,25 +44,13 @@ const kpis: KPI[] = [
     icon: Users,
     label: "Средний уровень компетенций команды",
     value: "76%",
-    sub: "команды из 15 чел.",
+    sub: `команды из ${MANAGER_TEAM_SIZE} чел.`,
     trend: "+4% за месяц",
     trendUp: true,
     accent: brandIcon.accentRed,
     glow: "rgba(227,0,11,0.18)",
     type: "ring",
     ringVal: 76,
-  },
-  {
-    icon: TrendingUp,
-    label: "Выполнение ИПР",
-    value: "84%",
-    sub: "по всей команде",
-    trend: "+11% за квартал",
-    trendUp: true,
-    accent: brandIcon.accentCyan,
-    glow: "rgba(129,208,245,0.35)",
-    type: "ring",
-    ringVal: 84,
   },
   {
     icon: AlertTriangle,
@@ -77,7 +66,7 @@ const kpis: KPI[] = [
   },
   {
     icon: Zap,
-    label: "Ожидаемый ROI обучения",
+    label: "Ожидаемая окупаемость обучения",
     value: "+24%",
     sub: "к производительности команды",
     trend: "↑ Прогноз на 2026",
@@ -115,7 +104,7 @@ export function KPICards() {
                   <div style={{ fontSize: "36px", fontWeight: "900", color: k.badgeColor, lineHeight: 1, letterSpacing: "-1px" }}>
                     {k.value}
                   </div>
-                  <div style={{ padding: "5px 12px", borderRadius: "20px", background: "rgba(227,0,11,0.1)", border: "1px solid rgba(227,0,11,0.28)", fontSize: "11px", fontWeight: "700", color: brandIcon.accentRed }}>
+                  <div style={{ padding: "5px 12px", borderRadius: "20px", background: "rgba(227,0,11,0.1)", border: "1px solid rgba(227,0,11,0.28)", fontSize: "11px", fontWeight: "500", color: brandIcon.accentRed }}>
                     7 сотрудников
                   </div>
                 </div>

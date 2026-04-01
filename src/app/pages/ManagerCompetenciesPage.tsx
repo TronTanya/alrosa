@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { TrendingUp, Target, Users, AlertTriangle } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
+import { MANAGER_TEAM_SIZE } from "../data/managerTeamCatalog";
 
 type SkillRow = {
   skill: string;
@@ -14,7 +15,7 @@ type SkillRow = {
 const skillRows: SkillRow[] = [
   { skill: "Системный дизайн", teamAvg: 72, target: 80, gap: "средний", trend: "+4 за квартал" },
   { skill: "TypeScript / фронтенд", teamAvg: 81, target: 85, gap: "низкий", trend: "+2" },
-  { skill: "Kubernetes / DevOps", teamAvg: 58, target: 75, gap: "высокий", trend: "+6" },
+  { skill: "Kubernetes и девопс", teamAvg: 58, target: 75, gap: "высокий", trend: "+6" },
   { skill: "Аналитика данных", teamAvg: 64, target: 70, gap: "средний", trend: "+3" },
   { skill: "Коммуникация / лидерство", teamAvg: 76, target: 78, gap: "низкий", trend: "+1" },
 ];
@@ -46,7 +47,7 @@ export function ManagerCompetenciesPage() {
               <h1
                 style={{
                   fontSize: "clamp(20px, 2vw, 1.4rem)",
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: "#000000",
                   margin: 0,
                   lineHeight: 1.15,
@@ -72,7 +73,7 @@ export function ManagerCompetenciesPage() {
         }}
       >
         {[
-          { icon: Users, label: "Оценено в матрице", value: "15", sub: "сотрудников команды" },
+          { icon: Users, label: "Оценено в матрице", value: String(MANAGER_TEAM_SIZE), sub: "сотрудников команды" },
           { icon: Target, label: "Разрыв к цели", value: "3", sub: "навыка с высоким gap" },
           { icon: TrendingUp, label: "Рост за квартал", value: "+5%", sub: "средний прирост по команде" },
         ].map((k, i) => (
@@ -99,9 +100,9 @@ export function ManagerCompetenciesPage() {
               >
                 <k.icon size={18} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
               </div>
-              <span style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", fontWeight: 600 }}>{k.label}</span>
+              <span style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", fontWeight: 500 }}>{k.label}</span>
             </div>
-            <div style={{ fontSize: "26px", fontWeight: 800, color: "#000000", letterSpacing: "-0.5px" }}>{k.value}</div>
+            <div style={{ fontSize: "26px", fontWeight: 600, color: "#000000", letterSpacing: "-0.5px" }}>{k.value}</div>
             <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.45)", marginTop: "4px" }}>{k.sub}</div>
           </motion.div>
         ))}
@@ -114,7 +115,7 @@ export function ManagerCompetenciesPage() {
         className="glass-card"
         style={{ padding: "20px", marginBottom: "16px" }}
       >
-        <div style={{ fontSize: "14px", fontWeight: 700, color: "#000000", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ fontSize: "14px", fontWeight: 500, color: "#000000", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
           <Target size={16} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} />
           Ключевые компетенции команды
         </div>
@@ -129,7 +130,7 @@ export function ManagerCompetenciesPage() {
                       textAlign: "left",
                       padding: "0 12px 10px",
                       fontSize: "10px",
-                      fontWeight: 700,
+                      fontWeight: 500,
                       color: "rgba(0,0,0,0.45)",
                       textTransform: "uppercase",
                       letterSpacing: "0.06em",
@@ -145,10 +146,10 @@ export function ManagerCompetenciesPage() {
                 const st = gapStyle(r.gap);
                 return (
                   <tr key={idx}>
-                    <td style={{ padding: "10px 12px", borderTop: "1px solid rgba(0,0,0,0.06)", fontSize: "13px", fontWeight: 600, color: "#000000" }}>
+                    <td style={{ padding: "10px 12px", borderTop: "1px solid rgba(0,0,0,0.06)", fontSize: "13px", fontWeight: 500, color: "#000000" }}>
                       {r.skill}
                     </td>
-                    <td style={{ padding: "10px 12px", borderTop: "1px solid rgba(0,0,0,0.06)", fontSize: "13px", fontWeight: 700, color: "#000000" }}>{r.teamAvg}%</td>
+                    <td style={{ padding: "10px 12px", borderTop: "1px solid rgba(0,0,0,0.06)", fontSize: "13px", fontWeight: 500, color: "#000000" }}>{r.teamAvg}%</td>
                     <td style={{ padding: "10px 12px", borderTop: "1px solid rgba(0,0,0,0.06)", fontSize: "12px", color: "rgba(0,0,0,0.55)" }}>{r.target}%</td>
                     <td style={{ padding: "10px 12px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
                       <span
@@ -159,7 +160,7 @@ export function ManagerCompetenciesPage() {
                           padding: "3px 8px",
                           borderRadius: "20px",
                           fontSize: "11px",
-                          fontWeight: 600,
+                          fontWeight: 500,
                           background: st.bg,
                           border: `1px solid ${st.border}`,
                           color: st.color,
@@ -179,9 +180,9 @@ export function ManagerCompetenciesPage() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="glass-card-md" style={{ padding: "18px 20px" }}>
-        <div style={{ fontSize: "14px", fontWeight: 700, color: "#000000", marginBottom: "10px" }}>Приоритеты развития (демо)</div>
+        <div style={{ fontSize: "14px", fontWeight: 500, color: "#000000", marginBottom: "10px" }}>Приоритеты развития (демо)</div>
         <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "rgba(0,0,0,0.7)", lineHeight: 1.6 }}>
-          <li>Усилить DevOps / K8s: закрыть разрыв до целевого уровня — групповой модуль + менторство.</li>
+          <li>Усилить девопс и Kubernetes: закрыть разрыв до целевого уровня — групповой модуль + менторство.</li>
           <li>Системный дизайн: парные ревью архитектуры и внутренние разборы кейсов.</li>
           <li>Зафиксировать прогресс в ИПР и связать с каталогом обучения в разделе «Курсы и обучение».</li>
         </ul>

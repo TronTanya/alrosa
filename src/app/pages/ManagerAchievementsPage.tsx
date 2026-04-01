@@ -2,8 +2,11 @@ import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Award, Medal, Search, Sparkles, Trophy } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
-
-type BadgeKind = "курс" | "аттестация" | "навык" | "корпоративный";
+import {
+  MANAGER_RECENT_ACHIEVEMENT_EVENTS,
+  MANAGER_TEAM_MEMBERS,
+  type ManagerAchievementFeedKind,
+} from "../data/managerTeamCatalog";
 
 type TeamMemberRow = {
   id: string;
@@ -15,23 +18,17 @@ type TeamMemberRow = {
   highlight?: string;
 };
 
-const team: TeamMemberRow[] = [
-  { id: "1", name: "А. Иванов", role: "Backend", badges: 4, certs: 3, lastEvent: "Python Advanced — завершён", highlight: "Топ по часам обучения" },
-  { id: "2", name: "М. Соколова", role: "Frontend", badges: 5, certs: 2, lastEvent: "React Architecture — в работе" },
-  { id: "3", name: "Д. Козлов", role: "DevOps", badges: 2, certs: 1, lastEvent: "K8s — риск по сроку" },
-  { id: "4", name: "А. Волкова", role: "Analytics", badges: 3, certs: 2, lastEvent: "SQL Basics — завершён" },
-  { id: "5", name: "Е. Новикова", role: "Product", badges: 6, certs: 4, lastEvent: "Agile Leadership — в работе", highlight: "Больше всего бейджей" },
-  { id: "6", name: "П. Лебедев", role: "Backend", badges: 1, certs: 0, lastEvent: "Go Lang Pro — запланирован" },
-];
+const team: TeamMemberRow[] = MANAGER_TEAM_MEMBERS.map((m) => ({
+  id: m.id,
+  name: m.shortName,
+  role: m.dept,
+  badges: m.badges,
+  certs: m.certs,
+  lastEvent: m.lastAchEvent,
+  ...(m.highlight ? { highlight: m.highlight } : {}),
+}));
 
-const recentBadges: { title: string; kind: BadgeKind; who: string; when: string }[] = [
-  { title: "Модуль «Информационная безопасность 2026»", kind: "корпоративный", who: "11 сотрудников", when: "28.03.2026" },
-  { title: "Промежуточная аттестация Q1", kind: "аттестация", who: "Команда разработки", when: "25.03.2026" },
-  { title: "Навык «Code Review» — уровень 2", kind: "навык", who: "М. Соколова", when: "22.03.2026" },
-  { title: "Курс «System Design»", kind: "курс", who: "А. Иванов", when: "18.03.2026" },
-];
-
-function badgeKindStyle(k: BadgeKind): { bg: string; border: string } {
+function badgeKindStyle(k: ManagerAchievementFeedKind): { bg: string; border: string } {
   if (k === "аттестация") return { bg: "rgba(227,0,11,0.08)", border: "rgba(227,0,11,0.22)" };
   if (k === "навык") return { bg: "rgba(129,208,245,0.14)", border: "rgba(129,208,245,0.35)" };
   if (k === "корпоративный") return { bg: "rgba(0,0,0,0.04)", border: "rgba(0,0,0,0.1)" };
@@ -75,7 +72,7 @@ export function ManagerAchievementsPage() {
               <h1
                 style={{
                   fontSize: "clamp(20px, 2vw, 1.4rem)",
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: "#000000",
                   margin: 0,
                   lineHeight: 1.15,
@@ -119,11 +116,11 @@ export function ManagerAchievementsPage() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <c.icon size={18} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} />
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(0,0,0,0.5)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              <span style={{ fontSize: "11px", fontWeight: 500, color: "rgba(0,0,0,0.5)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
                 {c.label}
               </span>
             </div>
-            <span style={{ fontSize: "26px", fontWeight: 800, color: "#000000", lineHeight: 1.1 }}>{c.value}</span>
+            <span style={{ fontSize: "26px", fontWeight: 600, color: "#000000", lineHeight: 1.1 }}>{c.value}</span>
             <span style={{ fontSize: "11px", color: "rgba(0,0,0,0.45)" }}>{c.sub}</span>
           </div>
         ))}
@@ -138,12 +135,12 @@ export function ManagerAchievementsPage() {
           marginBottom: "20px",
         }}
       >
-        <div style={{ fontSize: "13px", fontWeight: 700, color: "#000000", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ fontSize: "13px", fontWeight: 500, color: "#000000", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
           <Trophy size={16} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} />
           Недавние события
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {recentBadges.map((b, i) => {
+          {MANAGER_RECENT_ACHIEVEMENT_EVENTS.map((b, i) => {
             const st = badgeKindStyle(b.kind);
             return (
               <div
@@ -159,7 +156,7 @@ export function ManagerAchievementsPage() {
                   background: st.bg,
                 }}
               >
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#000000", flex: "1 1 200px" }}>{b.title}</span>
+                <span style={{ fontSize: "12px", fontWeight: 500, color: "#000000", flex: "1 1 200px" }}>{b.title}</span>
                 <span style={{ fontSize: "11px", color: "rgba(0,0,0,0.55)" }}>{b.who}</span>
                 <span style={{ fontSize: "11px", color: "rgba(0,0,0,0.55)", marginLeft: "auto" }}>{b.when}</span>
               </div>
@@ -215,12 +212,12 @@ export function ManagerAchievementsPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
             <thead>
               <tr style={{ background: "rgba(0,0,0,0.03)", textAlign: "left" }}>
-                <th style={{ padding: "10px 14px", fontWeight: 700, color: "rgba(0,0,0,0.65)" }}>Сотрудник</th>
-                <th style={{ padding: "10px 14px", fontWeight: 700, color: "rgba(0,0,0,0.65)" }}>Роль</th>
-                <th style={{ padding: "10px 14px", fontWeight: 700, color: "rgba(0,0,0,0.65)", whiteSpace: "nowrap" }}>Бейджи</th>
-                <th style={{ padding: "10px 14px", fontWeight: 700, color: "rgba(0,0,0,0.65)", whiteSpace: "nowrap" }}>Сертификаты</th>
-                <th style={{ padding: "10px 14px", fontWeight: 700, color: "rgba(0,0,0,0.65)" }}>Последнее событие</th>
-                <th style={{ padding: "10px 14px", fontWeight: 700, color: "rgba(0,0,0,0.65)" }}>Заметка</th>
+                <th style={{ padding: "10px 14px", fontWeight: 500, color: "rgba(0,0,0,0.65)" }}>Сотрудник</th>
+                <th style={{ padding: "10px 14px", fontWeight: 500, color: "rgba(0,0,0,0.65)" }}>Роль</th>
+                <th style={{ padding: "10px 14px", fontWeight: 500, color: "rgba(0,0,0,0.65)", whiteSpace: "nowrap" }}>Бейджи</th>
+                <th style={{ padding: "10px 14px", fontWeight: 500, color: "rgba(0,0,0,0.65)", whiteSpace: "nowrap" }}>Сертификаты</th>
+                <th style={{ padding: "10px 14px", fontWeight: 500, color: "rgba(0,0,0,0.65)" }}>Последнее событие</th>
+                <th style={{ padding: "10px 14px", fontWeight: 500, color: "rgba(0,0,0,0.65)" }}>Заметка</th>
               </tr>
             </thead>
             <tbody>
@@ -233,9 +230,9 @@ export function ManagerAchievementsPage() {
               ) : (
                 filtered.map((r) => (
                   <tr key={r.id} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-                    <td style={{ padding: "12px 14px", fontWeight: 700, color: "#000000" }}>{r.name}</td>
+                    <td style={{ padding: "12px 14px", fontWeight: 500, color: "#000000" }}>{r.name}</td>
                     <td style={{ padding: "12px 14px", color: "rgba(0,0,0,0.75)" }}>{r.role}</td>
-                    <td style={{ padding: "12px 14px", color: "#000000", fontWeight: 600 }}>{r.badges}</td>
+                    <td style={{ padding: "12px 14px", color: "#000000", fontWeight: 500 }}>{r.badges}</td>
                     <td style={{ padding: "12px 14px", color: "rgba(0,0,0,0.75)" }}>{r.certs}</td>
                     <td style={{ padding: "12px 14px", color: "rgba(0,0,0,0.75)", maxWidth: "280px" }}>{r.lastEvent}</td>
                     <td style={{ padding: "12px 14px", color: "rgba(0,0,0,0.55)", fontSize: "11px" }}>{r.highlight ?? "—"}</td>

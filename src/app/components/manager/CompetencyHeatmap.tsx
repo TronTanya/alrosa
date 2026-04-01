@@ -1,6 +1,37 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Info, Download, Filter } from "lucide-react";
 import { brandIcon } from "../../lib/brandIcons";
+
+type HeatmapViewFilter = "all" | "risk" | "strong";
+
+function cellOpacity(val: number, filter: HeatmapViewFilter): number {
+  if (filter === "all") return 1;
+  if (filter === "risk") return val < 60 ? 1 : 0.22;
+  if (filter === "strong") return val >= 80 ? 1 : 0.22;
+  return 1;
+}
+
+function downloadHeatmapCsv(
+  employeesList: string[],
+  comps: string[],
+  data: number[][],
+): void {
+  const header = ["Сотрудник", ...comps.map((c) => c.replace(/\n/g, " ").trim()), "Среднее по строке"];
+  const lines = employeesList.map((emp, ri) => {
+    const row = data[ri];
+    const avg = Math.round(row.reduce((a, b) => a + b, 0) / row.length);
+    return [emp, ...row.map(String), String(avg)].join(";");
+  });
+  const bom = "\uFEFF";
+  const csv = `${bom}${header.join(";")}\r\n${lines.join("\r\n")}\r\n`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `heatmap-komanda-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const employees = [
   "Александр Иванов",
@@ -19,7 +50,7 @@ const competencies = [
   "Коммуни-\nкативная",
   "Техн.\nэкспертиза",
   "Agile /\nScrum",
-  "Data\nAnalytics",
+  "Данные и\nаналитика",
   "Безопас-\nность",
   "Иннова-\nционность",
 ];
@@ -54,6 +85,24 @@ interface TooltipState { x: number; y: number; emp: string; comp: string; val: n
 export function CompetencyHeatmap() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [viewFilter, setViewFilter] = useState<HeatmapViewFilter>("all");
+  const [infoOpen, setInfoOpen] = useState(false);
+
+  const onExport = useCallback(() => {
+    downloadHeatmapCsv(employees, competencies, rawData);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setFilterPanelOpen(false);
+        setInfoOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const legend = [
     { label: "Высокий (≥80)", color: brandIcon.accentCyan },
@@ -68,10 +117,10 @@ export function CompetencyHeatmap() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
             <div style={{ width: "4px", height: "18px", borderRadius: "4px", background: "linear-gradient(180deg,#e3000b,#81d0f5)" }} />
-            <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#000000", margin: 0 }}>
+            <h3 style={{ fontSize: "15px", fontWeight: "500", color: "#000000", margin: 0 }}>
               Heatmap компетенций команды
             </h3>
-            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.15)", border: "1px solid rgba(129,208,245,0.4)", fontSize: "10px", fontWeight: "600", color: "#000000" }}>
+            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.15)", border: "1px solid rgba(129,208,245,0.4)", fontSize: "10px", fontWeight: "500", color: "#000000" }}>
               8 × 8
             </div>
           </div>
@@ -79,12 +128,175 @@ export function CompetencyHeatmap() {
             Уровень владения компетенциями по каждому сотруднику
           </p>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          {[Filter, Download, Info].map((Icon, i) => (
-            <button key={i} type="button" style={{ width: "34px", height: "34px", borderRadius: "9px", background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: brandIcon.stroke }}>
-              <Icon size={14} />
-            </button>
-          ))}
+        <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", position: "relative" }}>
+          <button
+            type="button"
+            title="Фильтр отображения"
+            aria-label="Фильтр отображения"
+            aria-expanded={filterPanelOpen}
+            onClick={() => setFilterPanelOpen((o) => !o)}
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "9px",
+              background: filterPanelOpen || viewFilter !== "all" ? "rgba(129,208,245,0.14)" : "rgba(0,0,0,0.03)",
+              border: filterPanelOpen || viewFilter !== "all" ? "1px solid rgba(129,208,245,0.45)" : "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: brandIcon.stroke,
+            }}
+          >
+            <Filter size={14} />
+          </button>
+          <button
+            type="button"
+            title="Скачать таблицу (CSV)"
+            aria-label="Скачать таблицу в формате CSV"
+            onClick={onExport}
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "9px",
+              background: "rgba(0,0,0,0.03)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: brandIcon.stroke,
+            }}
+          >
+            <Download size={14} />
+          </button>
+          <button
+            type="button"
+            title="Справка по heatmap"
+            aria-label="Справка по матрице компетенций"
+            aria-pressed={infoOpen}
+            onClick={() => setInfoOpen((o) => !o)}
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "9px",
+              background: infoOpen ? "rgba(129,208,245,0.12)" : "rgba(0,0,0,0.03)",
+              border: infoOpen ? "1px solid rgba(129,208,245,0.55)" : "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: brandIcon.stroke,
+              boxShadow: infoOpen ? "0 0 0 1px rgba(129,208,245,0.25)" : "none",
+            }}
+          >
+            <Info size={14} />
+          </button>
+
+          {filterPanelOpen && (
+            <div
+              className="glass-card"
+              role="dialog"
+              aria-label="Настройки фильтра"
+              style={{
+                position: "absolute",
+                right: 0,
+                top: "calc(100% + 8px)",
+                zIndex: 50,
+                minWidth: "240px",
+                padding: "14px",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+                border: "1px solid rgba(129,208,245,0.35)",
+              }}
+            >
+              <div style={{ fontSize: "11px", fontWeight: 600, color: "rgba(0,0,0,0.55)", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Подсветка ячеек
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {(
+                  [
+                    ["all", "Все уровни"],
+                    ["risk", "Зоны риска (< 60)"],
+                    ["strong", "Сильные стороны (≥ 80)"],
+                  ] as const
+                ).map(([val, lab]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => {
+                      setViewFilter(val);
+                      setFilterPanelOpen(false);
+                    }}
+                    style={{
+                      textAlign: "left",
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      border: viewFilter === val ? "1px solid rgba(227,0,11,0.35)" : "1px solid rgba(0,0,0,0.08)",
+                      background: viewFilter === val ? "rgba(227,0,11,0.06)" : "rgba(0,0,0,0.02)",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      color: "#000000",
+                      fontFamily: "var(--font-sans)",
+                    }}
+                  >
+                    {lab}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {infoOpen && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="heatmap-info-title"
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 2000,
+                background: "rgba(0,0,0,0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+              }}
+              onClick={() => setInfoOpen(false)}
+            >
+              <div
+                className="glass-card"
+                style={{ maxWidth: "420px", width: "100%", padding: "20px 22px", border: "1px solid rgba(129,208,245,0.4)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 id="heatmap-info-title" style={{ margin: "0 0 10px", fontSize: "15px", fontWeight: 600, color: "#000000" }}>
+                  Матрица компетенций
+                </h4>
+                <p style={{ margin: "0 0 12px", fontSize: "13px", lineHeight: 1.55, color: "rgba(0,0,0,0.75)" }}>
+                  Каждая ячейка — оценка сотрудника по направлению (0–100). Цвета соответствуют уровню: высокий, хороший, средний, низкий. Строка «Среднее» внизу — по компетенции по всей команде.
+                </p>
+                <p style={{ margin: "0 0 16px", fontSize: "12px", lineHeight: 1.5, color: "rgba(0,0,0,0.55)" }}>
+                  <strong>Фильтр</strong> подсвечивает только выбранный тип ячеек. <strong>Скачать</strong> выгружает таблицу в CSV для Excel.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setInfoOpen(false)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "10px",
+                    border: "none",
+                    background: "linear-gradient(135deg,#e3000b,#81d0f5)",
+                    color: "#fff",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: "var(--font-sans)",
+                  }}
+                >
+                  Понятно
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -107,7 +319,7 @@ export function CompetencyHeatmap() {
               <th style={{ width: "140px", minWidth: "140px" }} />
               {competencies.map((c, ci) => (
                 <th key={ci} style={{ textAlign: "center", paddingBottom: "8px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: "600", color: "rgba(0,0,0,0.5)", lineHeight: 1.3, whiteSpace: "pre-line" }}>
+                  <div style={{ fontSize: "10px", fontWeight: "500", color: "rgba(0,0,0,0.5)", lineHeight: 1.3, whiteSpace: "pre-line" }}>
                     {c}
                   </div>
                 </th>
@@ -126,7 +338,7 @@ export function CompetencyHeatmap() {
                 <tr key={ri}>
                   <td style={{ paddingRight: "10px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <div style={{ width: "26px", height: "26px", borderRadius: "50%", background: ri % 2 === 0 ? "linear-gradient(135deg,#e3000b,#81d0f5)" : "linear-gradient(135deg,#81d0f5,#e3000b)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", fontWeight: "700", color: "#ffffff", flexShrink: 0 }}>
+                      <div style={{ width: "26px", height: "26px", borderRadius: "50%", background: ri % 2 === 0 ? "linear-gradient(135deg,#e3000b,#81d0f5)" : "linear-gradient(135deg,#81d0f5,#e3000b)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", fontWeight: "500", color: "#ffffff", flexShrink: 0 }}>
                         {emp.split(" ").map(w => w[0]).slice(0, 2).join("")}
                       </div>
                       <span style={{ fontSize: "11.5px", color: "rgba(0,0,0,0.85)", fontWeight: "500", whiteSpace: "nowrap" }}>
@@ -141,7 +353,7 @@ export function CompetencyHeatmap() {
                     return (
                       <td key={ci} style={{ textAlign: "center" }}>
                         <div
-                          style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "42px", borderRadius: "10px", background: c.bg, border: `1px solid ${c.text}28`, cursor: "pointer", transition: "all .18s ease", transform: isHov ? "scale(1.06)" : "scale(1)", boxShadow: isHov ? `0 0 12px ${c.glow}` : "none", position: "relative", filter: isHov ? "brightness(0.97)" : "none" }}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "42px", borderRadius: "10px", background: c.bg, border: `1px solid ${c.text}28`, cursor: "pointer", transition: "all .18s ease, opacity .2s ease", transform: isHov ? "scale(1.06)" : "scale(1)", boxShadow: isHov ? `0 0 12px ${c.glow}` : "none", position: "relative", filter: isHov ? "brightness(0.97)" : "none", opacity: cellOpacity(val, viewFilter) }}
                           onMouseEnter={e => {
                             setHoveredCell(key);
                             const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
@@ -149,14 +361,27 @@ export function CompetencyHeatmap() {
                           }}
                           onMouseLeave={() => { setHoveredCell(null); setTooltip(null); }}
                         >
-                          <span style={{ fontSize: "13px", fontWeight: "800", color: c.text, lineHeight: 1 }}>{val}</span>
+                          <span style={{ fontSize: "13px", fontWeight: "600", color: c.text, lineHeight: 1 }}>{val}</span>
                         </div>
                       </td>
                     );
                   })}
                   <td style={{ textAlign: "center" }}>
-                    <div style={{ height: "42px", borderRadius: "10px", background: avgColor.bg, border: `1px solid ${avgColor.text}35`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 8px ${avgColor.glow}` }}>
-                      <span style={{ fontSize: "12px", fontWeight: "800", color: avgColor.text }}>{avg}</span>
+                    <div
+                      style={{
+                        height: "42px",
+                        borderRadius: "10px",
+                        background: avgColor.bg,
+                        border: `1px solid ${avgColor.text}35`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: `0 0 8px ${avgColor.glow}`,
+                        opacity: cellOpacity(avg, viewFilter),
+                        transition: "opacity .2s ease",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", fontWeight: "600", color: avgColor.text }}>{avg}</span>
                     </div>
                   </td>
                 </tr>
@@ -165,15 +390,27 @@ export function CompetencyHeatmap() {
 
             <tr>
               <td style={{ paddingTop: "8px" }}>
-                <span style={{ fontSize: "10px", color: "rgba(0,0,0,0.4)", fontWeight: "600", paddingLeft: "34px" }}>Среднее</span>
+                <span style={{ fontSize: "10px", color: "rgba(0,0,0,0.4)", fontWeight: "500", paddingLeft: "34px" }}>Среднее</span>
               </td>
               {competencies.map((_, ci) => {
                 const avg = Math.round(rawData.reduce((s, r) => s + r[ci], 0) / rawData.length);
                 const c = cellColor(avg);
                 return (
                   <td key={ci} style={{ textAlign: "center", paddingTop: "8px" }}>
-                    <div style={{ height: "32px", borderRadius: "8px", background: c.bg, border: `1px solid ${c.text}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: "11px", fontWeight: "700", color: c.text }}>{avg}</span>
+                    <div
+                      style={{
+                        height: "32px",
+                        borderRadius: "8px",
+                        background: c.bg,
+                        border: `1px solid ${c.text}30`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        opacity: cellOpacity(avg, viewFilter),
+                        transition: "opacity .2s ease",
+                      }}
+                    >
+                      <span style={{ fontSize: "11px", fontWeight: "500", color: c.text }}>{avg}</span>
                     </div>
                   </td>
                 );
@@ -187,11 +424,11 @@ export function CompetencyHeatmap() {
       {tooltip && (
         <div style={{ position: "fixed", left: tooltip.x, top: tooltip.y, transform: "translate(-50%,-100%)", zIndex: 1000, pointerEvents: "none" }}>
           <div style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "12px", padding: "10px 14px", boxShadow: "0 12px 40px rgba(0,0,0,0.12)", minWidth: "160px" }}>
-            <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", marginBottom: "4px" }}>{tooltip.emp}</div>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", marginBottom: "4px" }}>{tooltip.emp}</div>
             <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.55)", marginBottom: "6px" }}>{tooltip.comp}</div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "20px", fontWeight: "900", color: cellColor(tooltip.val).text }}>{tooltip.val}</span>
-              <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: cellColor(tooltip.val).bg, color: cellColor(tooltip.val).text, fontWeight: "600" }}>{cellLabel(tooltip.val)}</span>
+              <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: cellColor(tooltip.val).bg, color: cellColor(tooltip.val).text, fontWeight: "500" }}>{cellLabel(tooltip.val)}</span>
             </div>
             <div style={{ width: "100%", height: "3px", borderRadius: "3px", background: "rgba(0,0,0,0.06)", marginTop: "8px", overflow: "hidden" }}>
               <div style={{ width: `${tooltip.val}%`, height: "100%", background: cellColor(tooltip.val).text, borderRadius: "3px" }} />

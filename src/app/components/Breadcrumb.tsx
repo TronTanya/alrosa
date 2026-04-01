@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { Home, ChevronRight } from "lucide-react";
-import { brandIcon } from "../lib/brandIcons";
+import { brandIcon, type BrandLucideIcon } from "../lib/brandIcons";
+import { HR_LD_SECTION_LABEL } from "../lib/hrLdLabels";
 
 interface BreadcrumbItem {
   label: string;
   path?: string;
-  icon?: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
+  icon?: BrandLucideIcon;
 }
 
 const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
@@ -69,11 +70,6 @@ const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
     { label: "Руководитель", path: "/manager" },
     { label: "Компетенции" },
   ],
-  "/manager/calendar": [
-    { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "Руководитель", path: "/manager" },
-    { label: "Календарь" },
-  ],
   "/manager/reports": [
     { label: "Алроса ИТ", path: "/", icon: Home },
     { label: "Руководитель", path: "/manager" },
@@ -99,67 +95,72 @@ const ROUTE_MAP: Record<string, BreadcrumbItem[]> = {
   ],
   "/hr": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Главная" },
   ],
   "/hr/dashboard": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Дашборд и аналитика" },
   ],
   "/hr/employees": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Сотрудники" },
   ],
   "/hr/trajectory": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Траектория развития" },
   ],
   "/hr/mentor": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "ИИ-Наставник" },
   ],
   "/hr/catalog": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Каталог курсов" },
+  ],
+  "/hr/assign-courses": [
+    { label: "Алроса ИТ", path: "/", icon: Home },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
+    { label: "Назначение курсов" },
   ],
   "/hr/applications": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Заявки на обучение" },
   ],
   "/hr/competencies": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Компетенции" },
   ],
   "/hr/events": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Мероприятия" },
   ],
   "/hr/reports": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Отчёты" },
   ],
   "/hr/certificates": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Сертификаты" },
   ],
   "/hr/support": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Поддержка" },
   ],
   "/hr/settings": [
     { label: "Алроса ИТ", path: "/", icon: Home },
-    { label: "HR / L&D", path: "/hr" },
+    { label: HR_LD_SECTION_LABEL, path: "/hr" },
     { label: "Настройки" },
   ],
   "/admin": [
@@ -248,7 +249,6 @@ const ACCENT_MAP: Record<string, string> = {
   "/manager/mentor": "#81d0f5",
   "/manager/courses": "#81d0f5",
   "/manager/competencies": "#81d0f5",
-  "/manager/calendar": "#81d0f5",
   "/manager/reports": "#81d0f5",
   "/manager/achievements": "#81d0f5",
   "/team": "#81d0f5",
@@ -260,6 +260,7 @@ const ACCENT_MAP: Record<string, string> = {
   "/hr/trajectory": "#e3000b",
   "/hr/mentor": "#e3000b",
   "/hr/catalog": "#e3000b",
+  "/hr/assign-courses": "#e3000b",
   "/hr/applications": "#e3000b",
   "/hr/competencies": "#e3000b",
   "/hr/events": "#e3000b",
@@ -302,7 +303,7 @@ export function Breadcrumb({ tone = "light" }: BreadcrumbProps) {
 
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label="Навигационная цепочка"
       style={{ display: "flex", alignItems: "center", gap: "2px" }}
     >
       {items.map((item, idx) => {

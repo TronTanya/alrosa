@@ -1,4 +1,12 @@
-/** Демо-уведомления для шапки HR (L&D) */
+import { L_D_GLOSS } from "../../lib/hrLdLabels";
+import { countHrPendingApplications } from "../../lib/hrPendingApplicationsCount";
+import {
+  isHrPendingNotifUnread,
+  loadNotificationReads,
+  SITE_NOTIF_READS_HR,
+} from "../../lib/siteNotificationsStorage";
+
+/** Уведомления для шапки HR (L&D): текст и счётчик заявок — из данных демо (localStorage). */
 
 export type HrTopbarNotifIcon = "course" | "doc" | "calendar";
 
@@ -12,7 +20,7 @@ export type HrTopbarNotifItem = {
   to: string;
 };
 
-/** 8 непрочитанных — как на макете бейджа */
+/** Смесь прочитанных и непрочитанных: в колокольчике — только то, что ещё требует внимания */
 export const HR_TOPBAR_NOTIFICATIONS_INITIAL: HrTopbarNotifItem[] = [
   {
     id: "1",
@@ -55,16 +63,16 @@ export const HR_TOPBAR_NOTIFICATIONS_INITIAL: HrTopbarNotifItem[] = [
     title: "Сертификаты: 7 истекают в апреле",
     body: "Отправьте напоминания сотрудникам.",
     time: "3 ч назад",
-    read: false,
+    read: true,
     icon: "doc",
     to: "/hr/certificates",
   },
   {
     id: "6",
     title: "Мероприятие «Q1 review»",
-    body: "Изменено время начала (календарь L&D).",
+    body: `Изменено время начала (календарь ${L_D_GLOSS}).`,
     time: "5 ч назад",
-    read: false,
+    read: true,
     icon: "calendar",
     to: "/hr/events",
   },
@@ -73,17 +81,43 @@ export const HR_TOPBAR_NOTIFICATIONS_INITIAL: HrTopbarNotifItem[] = [
     title: "ИИ-наставник: новые сценарии",
     body: "Обновлены подсказки для траекторий развития.",
     time: "Вчера",
-    read: false,
+    read: true,
     icon: "course",
     to: "/hr/mentor",
   },
   {
     id: "8",
-    title: "Бюджет L&D: порог 85%",
+    title: `Бюджет ${L_D_GLOSS}: порог 85%`,
     body: "Запланируйте перенос части мероприятий на Q2.",
     time: "Вчера",
-    read: false,
+    read: true,
     icon: "doc",
     to: "/hr/dashboard",
   },
 ];
+
+export function buildHrTopbarNotificationList(): HrTopbarNotifItem[] {
+  const pending = countHrPendingApplications();
+  const reads = loadNotificationReads(SITE_NOTIF_READS_HR);
+  return HR_TOPBAR_NOTIFICATIONS_INITIAL.map((item) => {
+    if (item.id === "2") {
+      const read = !isHrPendingNotifUnread(pending);
+      return {
+        ...item,
+        title:
+          pending === 0
+            ? "Заявки на обучение: нет на согласовании"
+            : `Заявки на обучение: ${pending} на согласовании`,
+        body:
+          pending === 0
+            ? "Все текущие заявки обработаны или не ожидают решения."
+            : "Требуется решение по заявкам с истекающим сроком.",
+        read,
+      };
+    }
+    return {
+      ...item,
+      read: reads[item.id] !== undefined ? reads[item.id] : item.read,
+    };
+  });
+}

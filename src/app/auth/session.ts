@@ -1,3 +1,5 @@
+import { clearYandexIdUserInfo } from "./yandexIdSession";
+
 /** Ключ сессии демо-портала (в проде заменить на ответ SSO / refresh token). */
 const SESSION_KEY = "lk_curator_portal_session";
 
@@ -12,4 +14,5 @@ export function login(): void {
 
 export function logout(): void {
   sessionStorage.removeItem(SESSION_KEY);
+  clearYandexIdUserInfo();
 }

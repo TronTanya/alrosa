@@ -1,37 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Download, Filter } from "lucide-react";
-
-const departments = [
-  "Разработка ПО",
-  "DevOps / Infra",
-  "Аналитика данных",
-  "Дизайн & UX",
-  "Продажи & CRM",
-  "HR & People",
-  "Финансы",
-  "Юридический",
-];
-
-const competencies = [
-  "Цифровая\nэфф.",
-  "Управлен.",
-  "Коммуник.",
-  "Техн.\nэксперт.",
-  "Agile",
-  "Data &\nBI",
-  "Инфобез.",
-];
-
-const heatData: number[][] = [
-  [88, 72, 76, 94, 85, 78, 82],
-  [91, 65, 70, 88, 80, 84, 94],
-  [82, 58, 72, 76, 74, 96, 78],
-  [74, 68, 88, 70, 72, 62, 65],
-  [55, 80, 85, 48, 60, 55, 58],
-  [72, 90, 92, 60, 65, 68, 70],
-  [65, 76, 80, 55, 58, 88, 72],
-  [58, 84, 78, 50, 52, 60, 65],
-];
+import { buildDepartmentHeatmapData } from "../../lib/hrDashboardMetrics";
+import { useHrDataRevision } from "../../hooks/useHrDataRevision";
+import { downloadCsv } from "../../lib/hrTableExport";
 
 /** Только палитра бренда: #81d0f5 (циан) и #e3000b (красный) для заливок; цифры — #000000 */
 function cellColor(v: number) {
@@ -44,8 +15,42 @@ function cellColor(v: number) {
 interface TooltipState { x: number; y: number; dept: string; comp: string; val: number }
 
 export function DepartmentHeatmap() {
+  const dataRev = useHrDataRevision();
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [riskOnly, setRiskOnly] = useState(false);
+
+  const raw = useMemo(() => {
+    void dataRev;
+    return buildDepartmentHeatmapData();
+  }, [dataRev]);
+
+  const { departments, competencies, heatData, updatedLabel } = useMemo(() => {
+    if (!riskOnly) return raw;
+    const kept: number[] = [];
+    for (let i = 0; i < raw.heatData.length; i++) {
+      const row = raw.heatData[i];
+      const avg = Math.round(row.reduce((a, b) => a + b, 0) / row.length);
+      if (avg < 72) kept.push(i);
+    }
+    if (kept.length === 0) return raw;
+    return {
+      departments: kept.map((i) => raw.departments[i]),
+      competencies: raw.competencies,
+      heatData: kept.map((i) => raw.heatData[i]),
+      updatedLabel: raw.updatedLabel,
+    };
+  }, [raw, riskOnly]);
+
+  const exportMatrix = () => {
+    const headers = ["Подразделение", ...competencies.map((c) => c.replace(/\n/g, " ")), "Среднее по строке"];
+    const rows = departments.map((dept, ri) => {
+      const row = heatData[ri];
+      const avg = Math.round(row.reduce((a, b) => a + b, 0) / row.length);
+      return [dept, ...row.map(String), String(avg)];
+    });
+    downloadCsv(`heatmap-competencies-${updatedLabel.replace(/\./g, "-")}.csv`, headers, rows);
+  };
 
   const legend = [
     { label: "Отлично (≥85)", swatch: "#81d0f5", glow: "rgba(129,208,245,0.45)" },
@@ -61,21 +66,60 @@ export function DepartmentHeatmap() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <div style={{ width: "4px", height: "18px", borderRadius: "4px", background: "linear-gradient(180deg,#e3000b,#81d0f5)" }} />
-            <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#000000", margin: 0 }}>Heatmap по подразделениям</h3>
-            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.14)", border: "1px solid rgba(129,208,245,0.35)", fontSize: "10px", fontWeight: "600", color: "#000000" }}>
-              8 × 7
+            <h3 style={{ fontSize: "15px", fontWeight: "500", color: "#000000", margin: 0 }}>Тепловая карта по подразделениям</h3>
+            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.14)", border: "1px solid rgba(129,208,245,0.35)", fontSize: "10px", fontWeight: "500", color: "#000000" }}>
+              {departments.length} × {competencies.length}
             </div>
           </div>
           <p style={{ fontSize: "12px", color: "#000000", margin: 0 }}>
-            Средний балл компетенций по отделам компании
+            Значения от среднего % плана по подразделению (топ-{departments.length} по численности).
+            {riskOnly ? (
+              <>
+                {" "}
+                Фильтр: отделы со средним баллом {"<"}72.
+              </>
+            ) : null}
           </p>
         </div>
         <div style={{ display: "flex", gap: "7px" }}>
-          {[Filter, Download].map((Icon, i) => (
-            <button key={i} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#000000" }}>
-              <Icon size={13} />
-            </button>
-          ))}
+          <button
+            type="button"
+            title={riskOnly ? "Показать все отделы" : "Только отделы с риском (средний по строке меньше 72)"}
+            onClick={() => setRiskOnly((v) => !v)}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: riskOnly ? "rgba(227,0,11,0.1)" : "rgba(0,0,0,0.04)",
+              border: riskOnly ? "1px solid rgba(227,0,11,0.28)" : "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Filter size={13} />
+          </button>
+          <button
+            type="button"
+            title="Скачать CSV"
+            onClick={exportMatrix}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "rgba(0,0,0,0.04)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Download size={13} />
+          </button>
         </div>
       </div>
 
@@ -98,7 +142,7 @@ export function DepartmentHeatmap() {
               <th style={{ width: "130px", minWidth: "130px" }} />
               {competencies.map((c, ci) => (
                 <th key={ci} style={{ textAlign: "center", paddingBottom: "6px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: "600", color: "#000000", lineHeight: 1.3, whiteSpace: "pre-line" }}>{c}</div>
+                  <div style={{ fontSize: "10px", fontWeight: "500", color: "#000000", lineHeight: 1.3, whiteSpace: "pre-line" }}>{c}</div>
                 </th>
               ))}
               <th style={{ width: "50px", textAlign: "center", paddingBottom: "6px" }}>
@@ -134,14 +178,14 @@ export function DepartmentHeatmap() {
                           }}
                           onMouseLeave={() => { setHoveredCell(null); setTooltip(null); }}
                         >
-                          <span style={{ fontSize: "12px", fontWeight: "800", color: "#000000" }}>{val}</span>
+                          <span style={{ fontSize: "12px", fontWeight: "600", color: "#000000" }}>{val}</span>
                         </div>
                       </td>
                     );
                   })}
                   <td style={{ textAlign: "center" }}>
                     <div style={{ height: "38px", borderRadius: "9px", background: avgC.bg, border: `1px solid ${avgC.border}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 7px ${avgC.glow}` }}>
-                      <span style={{ fontSize: "11px", fontWeight: "800", color: "#000000" }}>{avg}</span>
+                      <span style={{ fontSize: "11px", fontWeight: "600", color: "#000000" }}>{avg}</span>
                     </div>
                   </td>
                 </tr>
@@ -150,7 +194,7 @@ export function DepartmentHeatmap() {
             {/* Column averages */}
             <tr>
               <td style={{ paddingTop: "6px" }}>
-                <span style={{ fontSize: "10px", color: "#000000", fontWeight: "600", paddingLeft: "12px" }}>Среднее</span>
+                <span style={{ fontSize: "10px", color: "#000000", fontWeight: "500", paddingLeft: "12px" }}>Среднее</span>
               </td>
               {competencies.map((_, ci) => {
                 const avg = Math.round(heatData.reduce((s, r) => s + r[ci], 0) / heatData.length);
@@ -158,7 +202,7 @@ export function DepartmentHeatmap() {
                 return (
                   <td key={ci} style={{ textAlign: "center", paddingTop: "6px" }}>
                     <div style={{ height: "30px", borderRadius: "8px", background: c.bg, border: `1px solid ${c.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: "10.5px", fontWeight: "700", color: "#000000" }}>{avg}</span>
+                      <span style={{ fontSize: "10.5px", fontWeight: "500", color: "#000000" }}>{avg}</span>
                     </div>
                   </td>
                 );
@@ -173,7 +217,7 @@ export function DepartmentHeatmap() {
       {tooltip && (
         <div style={{ position: "fixed", left: tooltip.x, top: tooltip.y, transform: "translate(-50%,-100%)", zIndex: 1000, pointerEvents: "none" }}>
           <div style={{ background: "rgba(255,255,255,0.98)", border: "1px solid rgba(129,208,245,0.35)", borderRadius: "12px", padding: "10px 14px", backdropFilter: "blur(20px)", minWidth: "160px", boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}>
-            <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", marginBottom: "3px" }}>{tooltip.dept}</div>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", marginBottom: "3px" }}>{tooltip.dept}</div>
             <div style={{ fontSize: "11px", color: "#000000", marginBottom: "6px" }}>{tooltip.comp}</div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "22px", fontWeight: "900", color: "#000000" }}>{tooltip.val}</span>

@@ -18,7 +18,7 @@ import {
   startOfDay,
 } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Calendar as CalIcon, ChevronLeft, ChevronRight, BookOpen, ExternalLink, Mail, Video } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, ExternalLink, Video } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
 import { computeFreeLearningSlots } from "../lib/calendarFreeSlots";
 import { fetchOutlookCalendarRange } from "../lib/graphCalendar";
@@ -33,14 +33,21 @@ import {
   tryOutlookSilentSignIn,
 } from "../lib/outlookMsal";
 import {
-  clearStoredNylasGrant,
   exchangeNylasCode,
-  fetchNylasAuthUrl,
   fetchNylasEventsRange,
   getNylasOAuthRedirectUri,
   NYLAS_GRANT_STORAGE_KEY,
   readStoredNylasGrant,
 } from "../lib/nylasCalendar";
+import {
+  buildYandexCalendarAuthorizeUrl,
+  clearStoredYandexToken,
+  exchangeYandexOAuthCode,
+  fetchYandexCalendarRange,
+  getYandexCalendarRedirectUri,
+  readStoredYandexToken,
+  writeStoredYandexToken,
+} from "../lib/yandexCalendar";
 /** Календарь Outlook в браузере (Microsoft 365 / личная учётная запись) */
 export const OUTLOOK_OFFICE_CALENDAR = "https://outlook.office.com/calendar/";
 export const OUTLOOK_LIVE_CALENDAR = "https://outlook.live.com/calendar/0/";
@@ -67,7 +74,6 @@ function eventsForDay(day: Date, events: CalEvent[]): CalEvent[] {
 export function EmployeeCalendarPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState<"outlook" | "lms">("outlook");
   const outlookEmbedUrl = useMemo(() => resolveOutlookCalendarUrl(), []);
   const outlookIntegrationOn = isOutlookMsalConfigured();
 
@@ -78,11 +84,20 @@ export function EmployeeCalendarPage() {
 
   const [nylasGrantId, setNylasGrantId] = useState<string | null>(() => readStoredNylasGrant());
   const [nylasBusy, setNylasBusy] = useState(false);
-  const [nylasError, setNylasError] = useState<string | null>(null);
+  const [_nylasError, setNylasError] = useState<string | null>(null);
   const [nylasEvents, setNylasEvents] = useState<CalEvent[]>([]);
-  const [nylasEventsLoading, setNylasEventsLoading] = useState(false);
-  const [nylasReloadTick, setNylasReloadTick] = useState(0);
+  const [_nylasEventsLoading, setNylasEventsLoading] = useState(false);
+
+  const [yandexToken, setYandexToken] = useState<string | null>(() => readStoredYandexToken());
+  const [yandexEvents, setYandexEvents] = useState<CalEvent[]>([]);
+  const [yandexBusy, setYandexBusy] = useState(false);
+  const [yandexError, setYandexError] = useState<string | null>(null);
+  const [yandexReloadTick, setYandexReloadTick] = useState(0);
+  const yandexOAuthConfigured =
+    typeof import.meta.env.VITE_YANDEX_OAUTH_CLIENT_ID === "string" ? !!import.meta.env.VITE_YANDEX_OAUTH_CLIENT_ID.trim() : false;
+  const yandexCallbackDisplay = typeof window !== "undefined" ? getYandexCalendarRedirectUri() : "http://localhost:5173/employee/calendar";
   const oauthCode = searchParams.get("code");
+  const oauthState = searchParams.get("state");
   /** Ответ Azure AD после MSAL (не путать с OAuth-кодом Nylas на том же пути календаря). */
   const oauthSessionState = searchParams.get("session_state");
   const oauthErr = searchParams.get("error");
@@ -120,6 +135,7 @@ export function EmployeeCalendarPage() {
 
   useEffect(() => {
     if (!oauthCode || oauthSessionState) return;
+    if (oauthState === "yandex_calendar") return;
     let cancelled = false;
     (async () => {
       setNylasBusy(true);
@@ -150,7 +166,39 @@ export function EmployeeCalendarPage() {
     return () => {
       cancelled = true;
     };
-  }, [oauthCode, oauthSessionState, setSearchParams]);
+  }, [oauthCode, oauthSessionState, oauthState, setSearchParams]);
+
+  /** Обмен кода Яндекс OAuth (не путать с Nylas и MSAL). */
+  useEffect(() => {
+    if (oauthState !== "yandex_calendar" || !oauthCode || oauthSessionState) return;
+    let cancelled = false;
+    (async () => {
+      setYandexBusy(true);
+      setYandexError(null);
+      try {
+        const { access_token } = await exchangeYandexOAuthCode(oauthCode);
+        if (cancelled) return;
+        writeStoredYandexToken(access_token);
+        setYandexToken(access_token);
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete("code");
+            next.delete("state");
+            return next;
+          },
+          { replace: true },
+        );
+      } catch (e) {
+        if (!cancelled) setYandexError(e instanceof Error ? e.message : "Ошибка обмена кода Яндекса");
+      } finally {
+        if (!cancelled) setYandexBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [oauthCode, oauthState, oauthSessionState, setSearchParams]);
 
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(new Date()));
 
@@ -243,32 +291,83 @@ export function EmployeeCalendarPage() {
     return () => {
       cancelled = true;
     };
-  }, [nylasGrantId, viewMonth, nylasReloadTick]);
+  }, [nylasGrantId, viewMonth]);
+
+  useEffect(() => {
+    if (!yandexToken) {
+      setYandexEvents([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setYandexBusy(true);
+      setYandexError(null);
+      try {
+        const rangeStart = startOfDay(startOfMonth(viewMonth));
+        const rangeEnd = endOfMonth(addMonths(viewMonth, 3));
+        const rows = await fetchYandexCalendarRange(yandexToken, rangeStart, rangeEnd);
+        if (cancelled) return;
+        setYandexEvents(
+          rows.map((e) => ({
+            id: e.id,
+            start: e.start,
+            end: e.end ?? addHours(e.start, 1),
+            title: e.title,
+            hint: e.hint,
+          })),
+        );
+      } catch (e) {
+        if (!cancelled) {
+          setYandexError(e instanceof Error ? e.message : "Яндекс.Календарь: ошибка загрузки");
+          setYandexEvents([]);
+        }
+      } finally {
+        if (!cancelled) setYandexBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [yandexToken, viewMonth, yandexReloadTick]);
 
   const mergedCalendarEvents = useMemo(() => {
-    if (graphEvents.length === 0 && nylasEvents.length === 0) return demoEvents;
+    const connected =
+      !!msAccount ||
+      !!nylasGrantId ||
+      !!yandexToken ||
+      graphEvents.length > 0 ||
+      nylasEvents.length > 0 ||
+      yandexEvents.length > 0;
+
+    if (!connected) {
+      return demoEvents;
+    }
+
     const byKey = new Map<string, CalEvent>();
-    for (const ev of demoEvents) byKey.set(ev.id, ev);
     for (const ev of graphEvents) byKey.set(ev.id, ev);
     for (const ev of nylasEvents) byKey.set(ev.id, ev);
+    for (const ev of yandexEvents) byKey.set(ev.id, ev);
+    for (const ev of demoEvents) {
+      if (!byKey.has(ev.id)) byKey.set(ev.id, ev);
+    }
     return Array.from(byKey.values()).sort((a, b) => a.start.getTime() - b.start.getTime());
-  }, [graphEvents, nylasEvents, demoEvents]);
+  }, [graphEvents, nylasEvents, yandexEvents, demoEvents, msAccount, nylasGrantId, yandexToken]);
 
   const outlookBusyIntervals = useMemo(
     () =>
-      [...graphEvents, ...nylasEvents].map((e) => ({
+      [...graphEvents, ...nylasEvents, ...yandexEvents].map((e) => ({
         start: e.start,
         end: e.end ?? addHours(e.start, 1),
       })),
-    [graphEvents, nylasEvents],
+    [graphEvents, nylasEvents, yandexEvents],
   );
 
   const freeLearningSlots = useMemo(() => {
-    if (!msAccount && !nylasGrantId) return [];
+    if (!msAccount && !nylasGrantId && !yandexToken) return [];
     const from = startOfDay(new Date());
     const to = addDays(from, 21);
     return computeFreeLearningSlots(outlookBusyIntervals, from, to, { slotMinutes: 120, maxSlots: 12 });
-  }, [msAccount, nylasGrantId, outlookBusyIntervals]);
+  }, [msAccount, nylasGrantId, yandexToken, outlookBusyIntervals]);
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(viewMonth), { weekStartsOn: 1 });
@@ -291,84 +390,28 @@ export function EmployeeCalendarPage() {
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: "16px", marginBottom: "20px" }}>
-          <div style={{ flex: "1 1 280px", minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-              <div
-                style={{
-                  width: "4px",
-                  height: "22px",
-                  borderRadius: "4px",
-                  background: "linear-gradient(180deg,#81d0f5,#81d0f5)",
-                }}
-              />
-              <h1 style={{ fontSize: "21px", fontWeight: "800", color: "#000000", margin: 0, letterSpacing: "-0.4px" }}>
-                Календарь
-              </h1>
-            </div>
-            <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "640px" }}>
-              {tab === "outlook"
-                ? nylasGrantId
-                  ? "События Outlook подгружаются через Nylas и отображаются в сетке и в списке ниже. Полный Outlook — ссылки внизу страницы."
-                  : outlookIntegrationOn
-                    ? "Вход через Microsoft: события основного календаря отображаются в сетке и в «Плане обучения» (Microsoft Graph). Полный Outlook откройте в отдельной вкладке — кнопки ниже."
-                    : "Подключите Microsoft (Graph) или Nylas ниже. Полный веб-календарь Outlook — кнопки внизу страницы."
-                : msAccount || nylasGrantId
-                  ? "Календарь объединяет демо-события ЛМС и загруженные из Outlook встречи."
-                  : "Демо-события обучения в ЛМС. После входа в Microsoft или Nylas на вкладке «Outlook» сюда подтянутся ваши встречи."}
-            </p>
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-            <button
-              type="button"
-              onClick={() => setTab("outlook")}
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+            <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 14px",
-                borderRadius: "12px",
-                background:
-                  tab === "outlook"
-                    ? "linear-gradient(135deg, rgba(129,208,245,.25), rgba(129,208,245,.12))"
-                    : "rgba(129,208,245,.05)",
-                border: tab === "outlook" ? "1px solid rgba(129,208,245,.35)" : "1px solid rgba(129,208,245,.1)",
-                color: "#000000",
-                fontSize: "12px",
-                fontWeight: "700",
-                fontFamily: "inherit",
-                cursor: "pointer",
+                width: "4px",
+                height: "22px",
+                borderRadius: "4px",
+                background: "linear-gradient(180deg,#81d0f5,#81d0f5)",
               }}
-            >
-              <Mail size={16} color={brandIcon.accentCyan} strokeWidth={brandIcon.sw} />
-              Outlook
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("lms")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 14px",
-                borderRadius: "12px",
-                background: tab === "lms" ? "linear-gradient(135deg, rgba(129,208,245,.2), rgba(129,208,245,.1))" : "rgba(129,208,245,.05)",
-                border: tab === "lms" ? "1px solid rgba(129,208,245,.35)" : "1px solid rgba(129,208,245,.1)",
-                color: "#000000",
-                fontSize: "12px",
-                fontWeight: "700",
-                fontFamily: "inherit",
-                cursor: "pointer",
-              }}
-            >
-              <CalIcon size={16} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
-              План обучения
-            </button>
+            />
+            <h1 style={{ fontSize: "21px", fontWeight: "600", color: "#000000", margin: 0, letterSpacing: "-0.4px" }}>
+              Календарь
+            </h1>
           </div>
+          <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "720px" }}>
+            Сетка и список объединяют демо-план обучения в ЛМС и встречи из подключённых календарей. Ниже — вход Microsoft (если настроен), ссылки на
+            Outlook в браузере, веб-календарь и OAuth Яндекса.
+          </p>
         </div>
       </motion.div>
 
-      {msAccount ? (
+      {msAccount || nylasGrantId || yandexToken ? (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -384,21 +427,22 @@ export function EmployeeCalendarPage() {
           <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", flexWrap: "wrap", marginBottom: "12px" }}>
             <BookOpen size={20} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} style={{ marginTop: "2px" }} />
             <div style={{ flex: "1 1 240px", minWidth: 0 }}>
-              <div style={{ fontSize: "14px", fontWeight: "800", color: "#000000", marginBottom: "6px" }}>
-                Занятость Outlook и окна для обучения
+              <div style={{ fontSize: "14px", fontWeight: "600", color: "#000000", marginBottom: "6px" }}>
+                Занятость календаря и окна для обучения
               </div>
               <p style={{ fontSize: "12px", color: "#000000", margin: 0, lineHeight: 1.55 }}>
-                По загруженным встречам строится занятость; ниже — свободные 2‑часовые окна в будни (9:00–18:00) на три недели вперёд. Их
-                можно использовать как ориентир при выборе времени на курс и заявке руководителю.
+                По загруженным встречам (Outlook / Яндекс) строится занятость; ниже — свободные 2‑часовые окна в будни (9:00–18:00) на
+                три недели вперёд. Их можно использовать как ориентир при выборе времени на курс и заявке руководителю.
               </p>
             </div>
           </div>
-          {graphBusy && graphEvents.length === 0 ? (
+          {graphBusy && graphEvents.length === 0 && msAccount ? (
             <div style={{ fontSize: "12px", color: "#000000" }}>Загрузка встреч из Outlook…</div>
           ) : (
             <>
               <div style={{ fontSize: "11px", color: "#000000", marginBottom: "10px" }}>
-                Встреч в календаре (период запроса): <strong>{graphEvents.length}</strong>
+                Встреч в выбранных календарях (период): Graph <strong>{graphEvents.length}</strong> · Nylas{" "}
+                <strong>{nylasEvents.length}</strong> · Яндекс <strong>{yandexEvents.length}</strong>
               </div>
               {freeLearningSlots.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -419,7 +463,7 @@ export function EmployeeCalendarPage() {
                           border: "1px solid rgba(129,208,245,.2)",
                         }}
                       >
-                        <span style={{ fontSize: "12px", fontWeight: "600", color: "#000000" }}>
+                        <span style={{ fontSize: "12px", fontWeight: "500", color: "#000000" }}>
                           {format(slot.start, "EEE d MMM", { locale: ru })} · {format(slot.start, "HH:mm")}–{format(slot.end, "HH:mm")}
                         </span>
                         <button
@@ -432,7 +476,7 @@ export function EmployeeCalendarPage() {
                             background: "linear-gradient(135deg, #e3000b, #ff6b6b)",
                             color: "#ffffff",
                             fontSize: "11px",
-                            fontWeight: "700",
+                            fontWeight: "500",
                             cursor: "pointer",
                             fontFamily: "inherit",
                           }}
@@ -497,7 +541,7 @@ export function EmployeeCalendarPage() {
             >
               <ChevronLeft size={18} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
             </button>
-            <div style={{ fontSize: "15px", fontWeight: "800", color: "#000000", textTransform: "capitalize" }}>{title}</div>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "#000000", textTransform: "capitalize" }}>{title}</div>
             <button
               type="button"
               aria-label="Следующий месяц"
@@ -535,7 +579,7 @@ export function EmployeeCalendarPage() {
                 key={d}
                 style={{
                   fontSize: "10px",
-                  fontWeight: "700",
+                  fontWeight: "500",
                   color: "#000000",
                   textAlign: "center",
                   padding: "4px 0",
@@ -610,13 +654,21 @@ export function EmployeeCalendarPage() {
             border: "1px solid rgba(129,208,245,.08)",
           }}
         >
-          <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", marginBottom: "4px" }}>Ближайшие события</div>
+          <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", marginBottom: "4px" }}>Ближайшие события</div>
           <div style={{ fontSize: "11px", color: "#000000", marginBottom: "14px" }}>
             {nylasGrantId
               ? "Демо ЛМС и встречи из Outlook через Nylas."
-              : msAccount
-                ? "Демо-события ЛМС и встречи из Outlook (Microsoft Graph)."
-                : "Показаны демо-даты. Войдите в Microsoft или подключите Nylas на вкладке «Outlook»."}
+              : yandexToken
+                ? yandexError
+                  ? "Не удалось подгрузить Яндекс.Календарь — см. блок ниже. Показаны демо-события ЛМС."
+                  : yandexBusy
+                    ? "Загрузка событий из Яндекса…"
+                    : yandexEvents.length === 0
+                      ? "Демо ЛМС; в Яндекс.Календаре в выбранном периоде событий нет (или проверьте месяц)."
+                      : "Демо-события ЛМС и встречи из Яндекс.Календаря."
+                : msAccount
+                  ? "Демо-события ЛМС и встречи из Outlook (Microsoft Graph)."
+                  : "Показаны демо-даты. Подключите календарь в блоках Outlook или Яндекс ниже."}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {upcoming.map((ev) => (
@@ -634,7 +686,7 @@ export function EmployeeCalendarPage() {
               >
                 <Video size={16} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} style={{ marginTop: "2px", flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{ev.title}</div>
+                  <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{ev.title}</div>
                   <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px" }}>
                     {format(ev.start, "d MMMM yyyy", { locale: ru })} · {format(ev.start, "HH:mm")}—
                     {format(ev.end ?? addHours(ev.start, 1), "HH:mm")}
@@ -647,12 +699,12 @@ export function EmployeeCalendarPage() {
 
           {selected && (
             <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid rgba(129,208,245,.06)" }}>
-              <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", marginBottom: "8px" }}>
+              <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", marginBottom: "8px" }}>
                 {format(selected, "d MMMM yyyy", { locale: ru })}
               </div>
               {eventsForDay(selected, mergedCalendarEvents).length === 0 ? (
                 <div style={{ fontSize: "12px", color: "#000000" }}>
-                  Нет событий на этот день. Подключите календарь (Microsoft или Nylas) на вкладке «Outlook».
+                  Нет событий на этот день. Подключите Outlook или Яндекс в блоках ниже.
                 </div>
               ) : (
                 eventsForDay(selected, mergedCalendarEvents).map((ev) => (
@@ -666,8 +718,7 @@ export function EmployeeCalendarPage() {
         </motion.div>
       </div>
 
-      {tab === "outlook" && (
-        <motion.div
+      <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -690,8 +741,8 @@ export function EmployeeCalendarPage() {
                 border: "1px solid rgba(129,208,245,.22)",
               }}
             >
-              <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", marginBottom: "10px" }}>
-                Вход Microsoft · календарь через Graph API
+              <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", marginBottom: "10px" }}>
+                Вход Microsoft · календарь через API Microsoft Graph
               </div>
               {graphError ? (
                 <div style={{ fontSize: "12px", color: "#b71c1c", marginBottom: "10px", lineHeight: 1.45 }}>{graphError}</div>
@@ -711,7 +762,7 @@ export function EmployeeCalendarPage() {
                       border: "1px solid rgba(129,208,245,.35)",
                       background: "rgba(129,208,245,.12)",
                       fontSize: "12px",
-                      fontWeight: "600",
+                      fontWeight: "500",
                       cursor: graphBusy ? "wait" : "pointer",
                       fontFamily: "inherit",
                     }}
@@ -742,7 +793,7 @@ export function EmployeeCalendarPage() {
                       border: "1px solid rgba(0,0,0,.12)",
                       background: "#fafafa",
                       fontSize: "12px",
-                      fontWeight: "600",
+                      fontWeight: "500",
                       cursor: "pointer",
                       fontFamily: "inherit",
                     }}
@@ -777,7 +828,7 @@ export function EmployeeCalendarPage() {
                     border: "1px solid rgba(129,208,245,.4)",
                     background: "linear-gradient(135deg, rgba(129,208,245,.28), rgba(129,208,245,.12))",
                     fontSize: "12px",
-                    fontWeight: "700",
+                    fontWeight: "500",
                     cursor: graphBusy ? "wait" : "pointer",
                     fontFamily: "inherit",
                   }}
@@ -787,119 +838,7 @@ export function EmployeeCalendarPage() {
                 </>
               )}
             </div>
-          ) : (
-            <div
-              style={{
-                marginBottom: "14px",
-                padding: "12px 14px",
-                borderRadius: "12px",
-                background: "rgba(0,0,0,.02)",
-                border: "1px dashed rgba(129,208,245,.25)",
-                fontSize: "12px",
-                color: "#000000",
-                lineHeight: 1.55,
-              }}
-            >
-              Для загрузки встреч в интерфейс укажите <code style={{ fontSize: "11px" }}>VITE_MSAL_CLIENT_ID</code> в{" "}
-              <code style={{ fontSize: "11px" }}>.env</code> (приложение Microsoft Entra ID, разрешения Calendars.Read, User.Read).
-              Инструкция — в <code style={{ fontSize: "11px" }}>.env.example</code>.
-            </div>
-          )}
-          <div
-            style={{
-              marginBottom: "14px",
-              padding: "14px 16px",
-              borderRadius: "14px",
-              background: "rgba(227,0,11,.04)",
-              border: "1px solid rgba(227,0,11,.15)",
-            }}
-          >
-            <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", marginBottom: "8px" }}>
-              Nylas · Outlook (Hosted OAuth)
-            </div>
-            <p style={{ fontSize: "11px", color: "#000000", margin: "0 0 10px", lineHeight: 1.5 }}>
-              Альтернатива прямому входу Microsoft: бэкенд с Nylas v3. Callback URI в дашборде Nylas:{" "}
-              <code style={{ fontSize: "10px" }}>{getNylasOAuthRedirectUri()}</code>.
-              Запуск: <code style={{ fontSize: "10px" }}>npm run backend:nylas</code> и переменные в <code style={{ fontSize: "10px" }}>backend/.env</code>.
-            </p>
-            {nylasError ? (
-              <div style={{ fontSize: "12px", color: "#b71c1c", marginBottom: "10px", lineHeight: 1.45 }}>{nylasError}</div>
-            ) : null}
-            {nylasGrantId ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
-                  <span style={{ fontSize: "12px", color: "#000000" }}>
-                    {nylasEventsLoading ? "Загрузка событий из Outlook…" : `События в календаре: ${nylasEvents.length}`}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={nylasEventsLoading}
-                    onClick={() => setNylasReloadTick((t) => t + 1)}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: "10px",
-                      border: "1px solid rgba(129,208,245,.35)",
-                      background: "rgba(129,208,245,.1)",
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      cursor: nylasEventsLoading ? "wait" : "pointer",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    Обновить из Nylas
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      clearStoredNylasGrant();
-                      setNylasGrantId(null);
-                      setNylasError(null);
-                      setNylasEvents([]);
-                    }}
-                    style={{
-                      padding: "8px 14px",
-                      borderRadius: "10px",
-                      border: "1px solid rgba(0,0,0,.12)",
-                      background: "#fafafa",
-                      fontSize: "12px",
-                      fontWeight: "600",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    Отключить Nylas
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                disabled={nylasBusy}
-                onClick={async () => {
-                  try {
-                    setNylasError(null);
-                    const redirectUri = getNylasOAuthRedirectUri();
-                    const url = await fetchNylasAuthUrl(redirectUri);
-                    window.location.href = url;
-                  } catch (e) {
-                    setNylasError(e instanceof Error ? e.message : "Не удалось получить ссылку Nylas");
-                  }
-                }}
-                style={{
-                  padding: "10px 18px",
-                  borderRadius: "12px",
-                  border: "1px solid rgba(227,0,11,.35)",
-                  background: "linear-gradient(135deg, rgba(227,0,11,.12), rgba(129,208,245,.12))",
-                  fontSize: "12px",
-                  fontWeight: "700",
-                  cursor: nylasBusy ? "wait" : "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                {nylasBusy ? "Обмен кода…" : "Подключить Outlook через Nylas"}
-              </button>
-            )}
-          </div>
+          ) : null}
           <div
             style={{
               display: "flex",
@@ -928,7 +867,7 @@ export function EmployeeCalendarPage() {
                   border: "1px solid rgba(129,208,245,.3)",
                   color: "#000000",
                   fontSize: "12px",
-                  fontWeight: "700",
+                  fontWeight: "500",
                   textDecoration: "none",
                   fontFamily: "inherit",
                 }}
@@ -950,7 +889,7 @@ export function EmployeeCalendarPage() {
                   border: "1px solid rgba(129,208,245,.12)",
                   color: "#000000",
                   fontSize: "12px",
-                  fontWeight: "600",
+                  fontWeight: "500",
                   textDecoration: "none",
                   fontFamily: "inherit",
                 }}
@@ -961,7 +900,199 @@ export function EmployeeCalendarPage() {
             </div>
           </div>
         </motion.div>
-      )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        style={{
+          marginBottom: "20px",
+          padding: "16px",
+          borderRadius: "16px",
+          background: "linear-gradient(135deg, rgba(255,220,80,.08), rgba(129,208,245,.06))",
+          border: "1px solid rgba(255,200,0,.22)",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ fontSize: "14px", fontWeight: "600", color: "#000000", marginBottom: "6px" }}>Веб-календарь Яндекса</div>
+        <p style={{ fontSize: "12px", color: "#000000", margin: "0 0 12px", lineHeight: 1.55, maxWidth: "720px" }}>
+          Полноценный интерфейс{" "}
+          <a href="https://calendar.yandex.ru/" target="_blank" rel="noopener noreferrer" style={{ color: "#000000" }}>
+            calendar.yandex.ru
+          </a>
+          . Если область ниже пустая — Яндекс может запрещать встраивание; откройте календарь кнопкой в блоке «Яндекс.Календарь» ниже.
+        </p>
+        <div
+          style={{
+            borderRadius: "14px",
+            overflow: "hidden",
+            border: "1px solid rgba(129,208,245,.2)",
+            background: "rgba(255,255,255,.85)",
+            minHeight: "min(62vh, 560px)",
+          }}
+        >
+          <iframe
+            title="Яндекс.Календарь"
+            src="https://calendar.yandex.ru/"
+            style={{
+              width: "100%",
+              height: "min(62vh, 560px)",
+              border: "none",
+              display: "block",
+            }}
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
+          />
+        </div>
+      </motion.div>
+
+      <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            marginBottom: "20px",
+            padding: "16px",
+            borderRadius: "16px",
+            background: "linear-gradient(135deg, rgba(255,220,80,.1), rgba(129,208,245,.06))",
+            border: "1px solid rgba(255,200,0,.28)",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ fontSize: "15px", fontWeight: "600", color: "#000000", marginBottom: "8px" }}>Яндекс.Календарь</div>
+          <p style={{ fontSize: "12px", color: "#000000", margin: "0 0 12px", lineHeight: 1.55 }}>
+            Вход через{" "}
+            <a href="https://oauth.yandex.ru/" target="_blank" rel="noopener noreferrer" style={{ color: "#000000" }}>
+              Яндекс OAuth
+            </a>
+            , права: <code style={{ fontSize: "11px" }}>calendar:read</code> и <code style={{ fontSize: "11px" }}>login:info</code>. В{" "}
+            <code style={{ fontSize: "11px" }}>.env</code> укажите <code style={{ fontSize: "11px" }}>VITE_YANDEX_OAUTH_CLIENT_ID</code> и{" "}
+            <code style={{ fontSize: "11px" }}>YANDEX_OAUTH_CLIENT_SECRET</code> (секрет только на сервере разработки). Callback URI в кабинете
+            приложения (точное совпадение): <code style={{ fontSize: "10px", wordBreak: "break-all" }}>{yandexCallbackDisplay}</code>. Загрузка
+            событий — CalDAV, встроена в <code style={{ fontSize: "11px" }}>npm run dev</code> (middleware Vite).
+            {!import.meta.env.DEV ? (
+              <>
+                {" "}
+                <strong>Внимание:</strong> в <code style={{ fontSize: "11px" }}>vite preview</code> и production middleware нет — нужен свой backend с теми же путями{" "}
+                <code style={{ fontSize: "10px" }}>/api/yandex/…</code>.
+              </>
+            ) : null}
+          </p>
+          {yandexError ? (
+            <div style={{ fontSize: "12px", color: "#b71c1c", marginBottom: "10px", lineHeight: 1.45 }}>{yandexError}</div>
+          ) : null}
+          {yandexBusy && !yandexToken ? (
+            <div style={{ fontSize: "12px", color: "#000000", marginBottom: "10px" }}>Подключение к Яндексу…</div>
+          ) : null}
+          {yandexToken ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "12px", color: "#000000" }}>
+                {yandexBusy ? "Загрузка событий…" : `События в Яндекс.Календаре: ${yandexEvents.length}`}
+              </span>
+              <button
+                type="button"
+                disabled={yandexBusy}
+                onClick={() => setYandexReloadTick((t) => t + 1)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255,200,0,.4)",
+                  background: "rgba(255,240,160,.25)",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: yandexBusy ? "wait" : "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Обновить из Яндекса
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  clearStoredYandexToken();
+                  setYandexToken(null);
+                  setYandexEvents([]);
+                  setYandexError(null);
+                }}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(0,0,0,.12)",
+                  background: "#fafafa",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Отключить Яндекс
+              </button>
+            </div>
+          ) : yandexOAuthConfigured ? (
+            <button
+              type="button"
+              disabled={yandexBusy}
+              onClick={() => {
+                try {
+                  setYandexError(null);
+                  window.location.href = buildYandexCalendarAuthorizeUrl();
+                } catch (e) {
+                  setYandexError(e instanceof Error ? e.message : "Не удалось открыть авторизацию");
+                }
+              }}
+              style={{
+                padding: "10px 18px",
+                borderRadius: "12px",
+                border: "1px solid rgba(255,200,0,.45)",
+                background: "linear-gradient(135deg, rgba(255,230,120,.35), rgba(129,208,245,.15))",
+                fontSize: "12px",
+                fontWeight: "500",
+                cursor: yandexBusy ? "wait" : "pointer",
+                fontFamily: "inherit",
+                marginBottom: "12px",
+              }}
+            >
+              Войти через Яндекс
+            </button>
+          ) : (
+            <div
+              style={{
+                padding: "12px 14px",
+                borderRadius: "12px",
+                background: "rgba(0,0,0,.02)",
+                border: "1px dashed rgba(129,208,245,.25)",
+                fontSize: "12px",
+                color: "#000000",
+                lineHeight: 1.55,
+                marginBottom: "12px",
+              }}
+            >
+              Задайте <code style={{ fontSize: "11px" }}>VITE_YANDEX_OAUTH_CLIENT_ID</code> в <code style={{ fontSize: "11px" }}>.env</code> и
+              перезапустите dev-сервер.
+            </div>
+          )}
+          <a
+            href="https://calendar.yandex.ru/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              background: "rgba(129,208,245,.08)",
+              border: "1px solid rgba(129,208,245,.2)",
+              color: "#000000",
+              fontSize: "12px",
+              fontWeight: "500",
+              textDecoration: "none",
+              fontFamily: "inherit",
+            }}
+          >
+            Открыть Яндекс.Календарь в браузере
+            <ExternalLink size={14} color={brandIcon.stroke} strokeWidth={brandIcon.swSm} />
+          </a>
+        </motion.div>
     </>
   );
 }

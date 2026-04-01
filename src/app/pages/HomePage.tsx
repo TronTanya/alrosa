@@ -4,6 +4,8 @@ import { motion } from "motion/react";
 import { ArrowRight, BookOpen, BrainCircuit, Calendar, TrendingUp } from "lucide-react";
 import { AlrosaLogo, BrandLine } from "../components/AlrosaBrand";
 import { brandIcon } from "../lib/brandIcons";
+import { ROUTE_PATHS } from "../routePaths";
+import { LEARNING_SNAPSHOT } from "../data/employeePortalAnalytics";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ export function HomePage() {
             <div className="landing-hero__titles">
               <h1 className="landing-h1">Главная</h1>
               <p className="landing-lead">
-                Александр Иванов · Middle Software Engineer ·{" "}
+                Александр Иванов · инженер-программист (Middle) ·{" "}
                 <span className="landing-hero__accent">краткий обзор по обучению и плану развития</span>
               </p>
             </div>
@@ -34,9 +36,27 @@ export function HomePage() {
 
         <div className="landing-metrics">
           {[
-            { label: "Курсы в работе", value: "7", sub: "из 12 в плане", icon: BookOpen, iconColor: brandIcon.stroke },
-            { label: "План развития 2026", value: "42%", sub: "+8% за месяц", icon: TrendingUp, iconColor: brandIcon.accentRed },
-            { label: "События недели", value: "3", sub: "в календаре", icon: Calendar, iconColor: brandIcon.accentCyan },
+            {
+              label: "Курсы в работе",
+              value: String(LEARNING_SNAPSHOT.coursesInProgress),
+              sub: `из ${LEARNING_SNAPSHOT.coursesInPlan} в плане`,
+              icon: BookOpen,
+              iconColor: brandIcon.stroke,
+            },
+            {
+              label: "План развития 2026",
+              value: `${LEARNING_SNAPSHOT.planProgressPercent}%`,
+              sub: `+${LEARNING_SNAPSHOT.planDeltaMonthPercent}% за месяц`,
+              icon: TrendingUp,
+              iconColor: brandIcon.accentRed,
+            },
+            {
+              label: "События недели",
+              value: String(LEARNING_SNAPSHOT.calendarEventsThisWeek),
+              sub: "в календаре",
+              icon: Calendar,
+              iconColor: brandIcon.accentCyan,
+            },
           ].map((c, i) => {
             const Icon = c.icon;
             return (
@@ -67,7 +87,7 @@ export function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          onClick={() => navigate("/cabinet")}
+          onClick={() => navigate(ROUTE_PATHS.employeeCabinet)}
           className="landing-cta"
         >
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -75,9 +95,9 @@ export function HomePage() {
               <BrainCircuit size={24} color={brandIcon.accentCyan} strokeWidth={brandIcon.sw} />
             </div>
             <div>
-              <div className="landing-cta__title">ИИ-Куратор · рабочий стол</div>
+              <div className="landing-cta__title">ИИ-Наставник · рабочий стол</div>
               <div className="landing-cta__desc">
-                Чат с наставником, рекомендации и таймлайн обучения — перейти в полный режим.
+                Чат с наставником, рекомендации и таймлайн обучения — тот же контекст, что на курсах и в аналитике.
               </div>
             </div>
           </div>

@@ -30,7 +30,7 @@ export function AdminMonitoringPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -46,7 +46,7 @@ export function AdminMonitoringPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -62,7 +62,7 @@ export function AdminMonitoringPage() {
                     background: "rgba(129,208,245,0.1)",
                     border: "1px solid rgba(129,208,245,0.25)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -104,7 +104,7 @@ export function AdminMonitoringPage() {
               gap: "14px",
             }}
           >
-            <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", letterSpacing: "0.04em", textTransform: "uppercase" }}>
               Ресурсы хоста
             </div>
             {[
@@ -115,7 +115,7 @@ export function AdminMonitoringPage() {
               <div key={row.label}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                   <span style={{ fontSize: "12px", color: "#000000" }}>{row.label}</span>
-                  <span style={{ fontSize: "12px", fontWeight: "700", color: "#000000" }}>
+                  <span style={{ fontSize: "12px", fontWeight: "500", color: "#000000" }}>
                     {row.val}
                     {row.suffix}
                   </span>

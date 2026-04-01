@@ -89,7 +89,7 @@ export function AdminAccessPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -105,7 +105,7 @@ export function AdminAccessPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -119,7 +119,7 @@ export function AdminAccessPage() {
                       background: "rgba(227,0,11,0.1)",
                       border: "1px solid rgba(227,0,11,0.25)",
                       fontSize: "11px",
-                      fontWeight: "700",
+                      fontWeight: "500",
                       color: "#e3000b",
                     }}
                   >
@@ -209,7 +209,7 @@ export function AdminAccessPage() {
                         textAlign: "left",
                         padding: "12px 14px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -233,7 +233,7 @@ export function AdminAccessPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 14px", maxWidth: "220px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.policyName}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.policyName}</span>
                       </td>
                       <td style={{ padding: "14px 14px", fontSize: "12px", color: "#000000", lineHeight: 1.45 }}>{r.resource}</td>
                       <td style={{ padding: "14px 14px", fontSize: "12px", color: "rgba(0,0,0,0.85)", lineHeight: 1.45 }}>{r.audience}</td>
@@ -252,7 +252,7 @@ export function AdminAccessPage() {
                             background: lv.bg,
                             color: lv.color,
                             fontSize: "12px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             fontFamily: "var(--font-sans)",
                             cursor: "pointer",
                             outline: "none",
@@ -281,7 +281,7 @@ export function AdminAccessPage() {
                             background: st.bg,
                             color: st.color,
                             fontSize: "12px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             fontFamily: "var(--font-sans)",
                             cursor: "pointer",
                             outline: "none",

@@ -1,8 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import { Users, BookOpen, Plug, Zap, Cpu } from "lucide-react";
+import { ADMIN_USERS_TOTAL, ADMIN_COURSES_ACTIVE, ADMIN_INTEGRATIONS_OK } from "../../data/adminDashboardConstants";
+import type { BrandLucideIcon } from "../../lib/brandIcons";
 
 interface KPI {
-  icon: React.ComponentType<{ size?: number }>;
+  icon: BrandLucideIcon;
   label: string;
   value: string;
   sub: string;
@@ -11,6 +14,8 @@ interface KPI {
   accent: string;
   glow: string;
   extra?: React.ReactNode;
+  /** Переход по клику на карточку */
+  to: string;
 }
 
 function MiniRing({ val, max, color }: { val: number; max: number; color: string }) {
@@ -28,7 +33,7 @@ function MiniRing({ val, max, color }: { val: number; max: number; color: string
           style={{ filter: `drop-shadow(0 0 5px ${color}AA)` }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: "10.5px", fontWeight: "800", color: "#000000" }}>{Math.round(pct * 100)}%</span>
+        <span style={{ fontSize: "10.5px", fontWeight: "600", color: "#000000" }}>{Math.round(pct * 100)}%</span>
       </div>
     </div>
   );
@@ -48,14 +53,14 @@ function SparkBars({ data, color }: { data: number[]; color: string }) {
 function IntegrationBadges() {
   const items = [
     { label: "Outlook", ok: true },
-    { label: "GigaChat", ok: true },
+    { label: "Яндекс Алиса", ok: true },
     { label: "1C HR", ok: true },
     { label: "Miro",  ok: true },
   ];
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
       {items.map(({ label, ok }) => (
-        <div key={label} style={{ display: "flex", alignItems: "center", gap: "3px", padding: "2px 7px", borderRadius: "20px", background: ok ? "rgba(0,196,160,.14)" : "rgba(255,71,87,.14)", border: `1px solid ${ok ? "rgba(0,196,160,.28)" : "rgba(255,71,87,.28)"}`, fontSize: "9.5px", fontWeight: "600", color: ok ? "#00C4A0" : "#FF6B7A" }}>
+        <div key={label} style={{ display: "flex", alignItems: "center", gap: "3px", padding: "2px 7px", borderRadius: "20px", background: ok ? "rgba(0,196,160,.14)" : "rgba(255,71,87,.14)", border: `1px solid ${ok ? "rgba(0,196,160,.28)" : "rgba(255,71,87,.28)"}`, fontSize: "9.5px", fontWeight: "500", color: ok ? "#00C4A0" : "#FF6B7A" }}>
           <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: ok ? "#00C4A0" : "#FF6B7A", display: "inline-block" }} />
           {label}
         </div>
@@ -79,45 +84,54 @@ function CPUGauge({ val }: { val: number }) {
           style={{ filter: `drop-shadow(0 0 5px ${color}AA)` }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: "10.5px", fontWeight: "800", color: "#000000" }}>{val}%</span>
+        <span style={{ fontSize: "10.5px", fontWeight: "600", color: "#000000" }}>{val}%</span>
       </div>
     </div>
   );
 }
 
-const kpis: Array<KPI & { visual?: React.ReactNode }> = [
+const userSpark = Array.from({ length: 7 }, (_, i) => {
+  const t = i / 6;
+  const base = Math.round(ADMIN_USERS_TOTAL * (0.78 + 0.22 * t));
+  return i === 6 ? ADMIN_USERS_TOTAL : base;
+});
+
+const kpis: KPI[] = [
   {
     icon: Users,
     label: "Всего пользователей",
-    value: "312",
+    value: String(ADMIN_USERS_TOTAL),
     sub: "303 активных · 9 новых",
     trend: "↑ +9 за неделю",
     trendGood: true,
     accent: "#e3000b",
     glow: "rgba(227,0,11,0.2)",
-    extra: <SparkBars data={[245, 258, 271, 280, 291, 303, 312]} color="#e3000b" />,
+    extra: <SparkBars data={userSpark} color="#e3000b" />,
+    to: "/admin/users",
   },
   {
     icon: BookOpen,
     label: "Активных курсов",
-    value: "87",
+    value: String(ADMIN_COURSES_ACTIVE),
     sub: "12 в разработке",
     trend: "↑ +6 этот месяц",
     trendGood: true,
     accent: "#81d0f5",
     glow: "rgba(129,208,245,0.28)",
-    extra: <MiniRing val={87} max={99} color="#81d0f5" />,
+    extra: <MiniRing val={ADMIN_COURSES_ACTIVE} max={99} color="#81d0f5" />,
+    to: "/admin/courses",
   },
   {
     icon: Plug,
     label: "Статус интеграций",
     value: "100%",
-    sub: "4 / 4 активных",
+    sub: `${ADMIN_INTEGRATIONS_OK} / ${ADMIN_INTEGRATIONS_OK} активных`,
     trend: "→ Всё работает штатно",
     trendGood: true,
     accent: "#000000",
     glow: "rgba(0,0,0,0.12)",
     extra: <IntegrationBadges />,
+    to: "/admin/integrations",
   },
   {
     icon: Zap,
@@ -129,6 +143,7 @@ const kpis: Array<KPI & { visual?: React.ReactNode }> = [
     accent: "#e3000b",
     glow: "rgba(227,0,11,0.22)",
     extra: <MiniRing val={94} max={100} color="#e3000b" />,
+    to: "/admin/notifications",
   },
   {
     icon: Cpu,
@@ -140,17 +155,28 @@ const kpis: Array<KPI & { visual?: React.ReactNode }> = [
     accent: "#81d0f5",
     glow: "rgba(129,208,245,0.22)",
     extra: <CPUGauge val={12} />,
+    to: "/admin/monitoring",
   },
 ];
 
 export function AdminKPICards() {
+  const navigate = useNavigate();
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "14px" }}>
       {kpis.map((k) => (
         <div
           key={k.label}
+          role="button"
+          tabIndex={0}
           className="glass-card"
           style={{ padding: "18px 16px", position: "relative", overflow: "hidden", cursor: "pointer", transition: "transform .2s,box-shadow .2s" }}
+          onClick={() => navigate(k.to)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              navigate(k.to);
+            }
+          }}
           onMouseEnter={e => {
             (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
             (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 32px rgba(0,0,0,0.1), 0 0 20px ${k.glow}`;
@@ -171,13 +197,13 @@ export function AdminKPICards() {
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "10px" }}>
             <div>
-              <div style={{ fontSize: "26px", fontWeight: "900", color: "#000000", letterSpacing: "-0.8px", lineHeight: 1 }}>{k.value}</div>
+              <div style={{ fontSize: "26px", fontWeight: "400", color: "#000000", letterSpacing: "-0.8px", lineHeight: 1 }}>{k.value}</div>
               <div style={{ fontSize: "10.5px", color: "rgba(0,0,0,0.45)", marginTop: "3px" }}>{k.sub}</div>
             </div>
             {k.extra}
           </div>
 
-          <div style={{ paddingTop: "10px", borderTop: "1px solid rgba(0,0,0,0.08)", fontSize: "10.5px", color: k.trendGood ? "#0d9488" : "#e3000b", fontWeight: "600" }}>
+          <div style={{ paddingTop: "10px", borderTop: "1px solid rgba(0,0,0,0.08)", fontSize: "10.5px", color: k.trendGood ? "#0d9488" : "#e3000b", fontWeight: "500" }}>
             {k.trend}
           </div>
         </div>

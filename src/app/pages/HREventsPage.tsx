@@ -88,7 +88,7 @@ export function HREventsPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -203,7 +203,7 @@ export function HREventsPage() {
                         textAlign: "left",
                         padding: "12px 16px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -227,16 +227,16 @@ export function HREventsPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 16px", maxWidth: "280px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.title}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.title}</span>
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.kind}</td>
-                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "600", color: "#000000", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "500", color: "#000000", whiteSpace: "nowrap" }}>
                         {r.date}
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000", whiteSpace: "nowrap" }}>{r.time}</td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.format}</td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000", maxWidth: "200px" }}>{r.venue}</td>
-                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "600", color: "#000000", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "500", color: "#000000", whiteSpace: "nowrap" }}>
                         {r.registered} / {r.capacity} ({pct}%)
                       </td>
                       <td style={{ padding: "14px 16px" }}>
@@ -246,7 +246,7 @@ export function HREventsPage() {
                             padding: "3px 9px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             color: "#000000",
                             background: st.bg,
                             border: `1px solid ${st.border}`,

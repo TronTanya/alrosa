@@ -3,6 +3,8 @@
  * Без сторонних библиотек, корректная кириллица (UTF-8).
  */
 
+import { getHrDashboardMetrics } from "./hrDashboardMetrics";
+
 export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -42,14 +44,8 @@ const PRINT_STYLES = `
   .small { font-size: 9pt; color: #555; }
 `;
 
-export function openPrintableReport(title: string, bodyHtml: string): void {
-  const w = window.open("", "_blank", "noopener,noreferrer");
-  if (!w) {
-    window.alert("Разрешите всплывающие окна для этого сайта, чтобы сформировать PDF.");
-    return;
-  }
-  w.document.open();
-  w.document.write(`<!DOCTYPE html><html lang="ru"><head>
+function buildPrintDocumentHtml(title: string, bodyHtml: string): string {
+  return `<!DOCTYPE html><html lang="ru"><head>
 <meta charset="UTF-8"/>
 <title>${escapeHtml(title)}</title>
 <style>${PRINT_STYLES}</style>
@@ -61,8 +57,41 @@ window.addEventListener("load", function () {
   setTimeout(function () { window.focus(); window.print(); }, 120);
 });
 </script>
-</body></html>`);
-  w.document.close();
+</body></html>`;
+}
+
+/**
+ * Печать / «Сохранить как PDF». Сначала новое окно; если браузер блокирует pop-up — скрытый iframe.
+ */
+export function openPrintableReport(title: string, bodyHtml: string): void {
+  const html = buildPrintDocumentHtml(title, bodyHtml);
+  const w = window.open("", "_blank", "noopener,noreferrer");
+  if (w) {
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    return;
+  }
+
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-label", `Печать: ${title}`);
+  iframe.style.cssText =
+    "position:fixed;left:0;top:0;width:0;height:0;opacity:0;pointer-events:none;border:0;";
+  document.body.appendChild(iframe);
+  const idoc = iframe.contentDocument;
+  if (!idoc) {
+    document.body.removeChild(iframe);
+    window.alert("Не удалось открыть окно печати. Разрешите всплывающие окна или обновите страницу.");
+    return;
+  }
+  idoc.open();
+  idoc.write(html);
+  idoc.close();
+  const cleanup = () => {
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  };
+  iframe.contentWindow?.addEventListener("afterprint", cleanup);
+  setTimeout(cleanup, 120_000);
 }
 
 export function buildTrainingApplicationsPdfHtml(
@@ -100,33 +129,35 @@ export function buildTrainingApplicationsPdfHtml(
 <h2>Таблица заявок</h2>
 <table>
 <thead><tr>
-<th>Сотрудник</th><th>Курс / программа</th><th>Тип</th><th>Статус</th><th>Дедлайн</th><th>Бюджет</th><th>ROI</th>
+<th>Сотрудник</th><th>Курс / программа</th><th>Тип</th><th>Статус</th><th>Дедлайн</th><th>Бюджет</th><th>Окупаемость</th>
 </tr></thead>
 <tbody>${tableRows}</tbody>
 </table>`;
 }
 
-/** Сводка для кнопки PDF в верхней панели HR (цифры совпадают с демо KPI). */
+/** Сводка для кнопки PDF в верхней панели HR — цифры из актуального среза справочника и заявок. */
 export function buildHrDashboardSummaryPdfHtml(): string {
-  const date = new Date().toLocaleString("ru");
+  const m = getHrDashboardMetrics();
+  const date = m.generatedAt;
+  const trendBudget = m.budgetRemainPct >= 15 ? `остаток ~${m.budgetRemainPct}%` : "контроль лимита";
   return `<h1>Дашборд HR / L&amp;D — сводный отчёт</h1>
-<p class="meta">Дата: ${escapeHtml(date)}<br/>
-Корпоративный университет · 312 сотрудников · демонстрационные показатели портала ИИ-Куратор.</p>
+<p class="meta">Сформировано: ${escapeHtml(date)}<br/>
+Корпоративный университет · ${m.totalEmployees} сотрудников в справочнике · заявок в очереди: ${m.pendingApplications}.</p>
 <h2>Ключевые показатели</h2>
 <table>
-<thead><tr><th>Показатель</th><th>Значение</th><th>Комментарий</th><th>Динамика</th></tr></thead>
+<thead><tr><th>Показатель</th><th>Значение</th><th>Комментарий</th><th>Примечание</th></tr></thead>
 <tbody>
-<tr><td>Сотрудников в обучении</td><td>248</td><td>из 312 активных</td><td>↑ +18 за неделю</td></tr>
-<tr><td>Общий % завершения курсов</td><td>92%</td><td>курсов выполнено</td><td>↑ +3% к прошлому кварталу</td></tr>
-<tr><td>Бюджет обучения</td><td>4,8 млн ₽</td><td>из 6 млн ₽ плана</td><td>→ 20% остаток</td></tr>
-<tr><td>Автообработано заявок</td><td>87%</td><td>без участия HR</td><td>↑ +12% vs ручной процесс</td></tr>
-<tr><td>Экономия времени HR</td><td>124 ч / мес</td><td>≈ 15,5 рабочих дней</td><td>↑ рост автоматизации</td></tr>
+<tr><td>Сотрудников в обучении</td><td>${m.inLearning}</td><td>из ${m.totalEmployees} в штате</td><td>в плане: ${m.inPlan}, не в плане: ${m.notInPlan}</td></tr>
+<tr><td>Средний % плана по компании</td><td>${escapeHtml(m.avgPlanPctDisplay)}</td><td>по сотрудникам с заданной метрикой</td><td>агрегат справочника</td></tr>
+<tr><td>Бюджет L&amp;D (оценка)</td><td>${escapeHtml(m.budgetSpentLabel)}</td><td>из ${(m.budgetPlanRub / 1_000_000).toFixed(1)} млн ₽ плана</td><td>${escapeHtml(trendBudget)}</td></tr>
+<tr><td>Автообработано заявок</td><td>${m.autoProcessPct}%</td><td>модель по загрузке очереди</td><td>заявок: ${m.pendingApplications}</td></tr>
+<tr><td>Экономия времени HR</td><td>${m.hrHoursSaved} ч / мес</td><td>оценка по активности</td><td>срез портала</td></tr>
 </tbody>
 </table>
 <h2>Примечания</h2>
 <ul>
-<li>Детальная разбивка по заявкам — в разделе «Все заявки на обучение» на дашборде (кнопка PDF в таблице).</li>
-<li>Отчёт носит демонстрационный характер.</li>
+<li>Детальная разбивка по заявкам — таблица на дашборде и экспорт PDF по заявкам.</li>
+<li>Бюджет — расчётная оценка для демо; для боевых цифр подключите финансовый контур.</li>
 </ul>`;
 }
 

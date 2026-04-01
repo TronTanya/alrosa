@@ -1,3 +1,5 @@
+import { estimateCourseEconomics } from "./courseEconomics";
+
 const STORAGE_KEY = "alrosa_demo_training_applications_v1";
 
 export const TRAINING_APPLICATIONS_UPDATED = "alrosa-training-applications-updated";
@@ -16,9 +18,15 @@ export type StoredTrainingApplication = {
   submittedAt: string;
   typeLabel: string;
   hrType: HrCourseType;
+  /** Строка в таблице заявок целиком (если задана — вместо «Курс «title»») */
+  listTitle?: string;
+  /** Оценка дедлайна согласования/старта (ISO), бюджета и ROI — по каталогу провайдера/URL */
+  deadlineIso?: string;
+  budgetRub?: number;
+  roiPercent?: number;
 };
 
-export const DEMO_PORTAL_EMPLOYEE = { employee: "Александр Иванов", dept: "Backend" } as const;
+export const DEMO_PORTAL_EMPLOYEE = { employee: "Александр Иванов", dept: "Бэкенд" } as const;
 
 function dispatchUpdated() {
   if (typeof window !== "undefined") {
@@ -70,16 +78,33 @@ export function readStoredTrainingApplications(): StoredTrainingApplication[] {
         o.hrType === "внешний" || o.hrType === "внутренний" || o.hrType === "онлайн" || o.hrType === "конференция"
           ? o.hrType
           : inferred.hrType;
-      out.push({
+      const listTitle = typeof o.listTitle === "string" && o.listTitle.trim() ? o.listTitle.trim() : undefined;
+      const submittedAt = typeof o.submittedAt === "string" ? o.submittedAt : new Date().toISOString();
+      const base: StoredTrainingApplication = {
         id: typeof o.id === "string" ? o.id : `legacy-${hrRowId}`,
         hrRowId,
         title: o.title.trim(),
         provider: typeof o.provider === "string" ? o.provider.trim() : "",
         url: typeof o.url === "string" ? o.url : undefined,
-        submittedAt: typeof o.submittedAt === "string" ? o.submittedAt : new Date().toISOString(),
+        submittedAt,
         typeLabel,
         hrType,
-      });
+        ...(listTitle ? { listTitle } : {}),
+      };
+      const hasFullEcon =
+        typeof o.deadlineIso === "string" &&
+        typeof o.budgetRub === "number" &&
+        Number.isFinite(o.budgetRub) &&
+        typeof o.roiPercent === "number" &&
+        Number.isFinite(o.roiPercent);
+      const econ = hasFullEcon
+        ? {
+            deadlineIso: o.deadlineIso as string,
+            budgetRub: o.budgetRub as number,
+            roiPercent: o.roiPercent as number,
+          }
+        : estimateCourseEconomics(base.url, base.provider, base.title, submittedAt);
+      out.push({ ...base, ...econ });
     }
     if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(out));
     return out;
@@ -93,20 +118,31 @@ export function submitTrainingApplication(input: {
   provider: string;
   url?: string;
   mentorType?: "internal" | "external";
+  /** Подпись типа в таблице (например «ИПР / план развития») */
+  typeLabelOverride?: string;
+  /** Заголовок строки в списке заявок (полная формулировка) */
+  listTitle?: string;
 }): StoredTrainingApplication {
   const list = readStoredTrainingApplications();
   const maxHr = Math.max(STATIC_HR_MAX_ID, 0, ...list.map((x) => x.hrRowId));
   const hrRowId = maxHr + 1;
-  const { typeLabel, hrType } = inferTypes(input.provider, input.mentorType);
+  const inferred = inferTypes(input.provider, input.mentorType);
+  const typeLabel = input.typeLabelOverride?.trim() || inferred.typeLabel;
+  const hrType = inferred.hrType;
+  const listTitle = input.listTitle?.trim();
+  const submittedAt = new Date().toISOString();
+  const econ = estimateCourseEconomics(input.url, input.provider, input.title, submittedAt);
   const row: StoredTrainingApplication = {
     id: `app-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     hrRowId,
     title: input.title.trim(),
     provider: input.provider.trim(),
     url: input.url,
-    submittedAt: new Date().toISOString(),
+    submittedAt,
     typeLabel,
     hrType,
+    ...econ,
+    ...(listTitle ? { listTitle } : {}),
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify([row, ...list]));
   dispatchUpdated();

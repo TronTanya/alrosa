@@ -1,3 +1,9 @@
+import type { ComponentType } from "react";
+import type { LucideProps } from "lucide-react";
+
+/** Lucide-иконка со всеми SVG-пропсами (color, strokeWidth, style и т.д.) */
+export type BrandLucideIcon = ComponentType<LucideProps>;
+
 /**
  * Фирменный стиль иконок (линейная графика, как у графического элемента фирменного блока):
  * — контур преимущественно чёрный;

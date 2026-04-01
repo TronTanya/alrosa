@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { BookOpen, ExternalLink, HelpCircle, Search } from "lucide-react";
 import {
@@ -7,33 +8,8 @@ import {
 } from "../data/adminDocumentationCatalog";
 import { brandIcon } from "../lib/brandIcons";
 
-function openDocDemo(title: string) {
-  const el = document.createElement("div");
-  el.textContent = `Демо: материал «${title}» откроется в Confluence / PDF после подключения портала документации.`;
-  Object.assign(el.style, {
-    position: "fixed",
-    bottom: "80px",
-    right: "24px",
-    zIndex: "9999",
-    background: "rgba(0,0,0,0.97)",
-    border: "1px solid rgba(129,208,245,0.35)",
-    color: "#ffffff",
-    borderRadius: "12px",
-    padding: "12px 18px",
-    fontSize: "13px",
-    fontFamily: "var(--font-sans)",
-    fontWeight: "600",
-    maxWidth: "380px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-  });
-  document.body.appendChild(el);
-  setTimeout(() => {
-    el.style.opacity = "0";
-    setTimeout(() => el.remove(), 300);
-  }, 2800);
-}
-
 export function AdminDocumentationPage() {
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -69,7 +45,7 @@ export function AdminDocumentationPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -85,7 +61,7 @@ export function AdminDocumentationPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -93,7 +69,7 @@ export function AdminDocumentationPage() {
                 </span>
               </div>
               <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "760px" }}>
-                Сводка регламентов и технических описаний ЕСО для администраторов. Ссылки ведут в демо-режиме.
+                Сводка регламентов и технических описаний ЕСО для администраторов. Кнопка «Открыть» ведёт на страницу материала.
               </p>
             </div>
           </div>
@@ -179,7 +155,7 @@ export function AdminDocumentationPage() {
                     background: "rgba(129,208,245,0.1)",
                     border: "1px solid rgba(129,208,245,0.25)",
                     fontSize: "10px",
-                    fontWeight: "700",
+                    fontWeight: "500",
                     color: "#000000",
                     textTransform: "uppercase",
                     letterSpacing: "0.04em",
@@ -188,13 +164,13 @@ export function AdminDocumentationPage() {
                   {a.tag}
                 </span>
               </div>
-              <h2 style={{ fontSize: "15px", fontWeight: "800", color: "#000000", margin: 0, lineHeight: 1.35 }}>{a.title}</h2>
+              <h2 style={{ fontSize: "15px", fontWeight: "600", color: "#000000", margin: 0, lineHeight: 1.35 }}>{a.title}</h2>
               <p style={{ fontSize: "12px", color: "rgba(0,0,0,0.72)", margin: 0, lineHeight: 1.5, flex: 1 }}>{a.description}</p>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "11px", color: "rgba(0,0,0,0.45)" }}>Обновлено: {a.updated}</span>
                 <button
                   type="button"
-                  onClick={() => openDocDemo(a.title)}
+                  onClick={() => navigate(`/admin/documentation/${a.id}`)}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -205,7 +181,7 @@ export function AdminDocumentationPage() {
                     background: "rgba(227,0,11,0.06)",
                     color: "#e3000b",
                     fontSize: "12px",
-                    fontWeight: "700",
+                    fontWeight: "500",
                     cursor: "pointer",
                     fontFamily: "var(--font-sans)",
                   }}

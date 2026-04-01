@@ -5,11 +5,27 @@
  */
 export const ROUTE_PATHS = {
   login: "/login",
+  /** Вспомогательная страница OAuth (implicit token) для Suggest — зарегистрируйте URL в кабинете Яндекс ID как Redirect URI */
+  yandexOAuthToken: "/yandex-oauth-token",
   employee: "/",
   /** Сотрудник: календарь Outlook (Microsoft Graph / Nylas), callback Nylas/MSAL */
   employeeCalendar: "/employee/calendar",
   /** Сотрудник: список команды (лёгкая страница в EmployeeShell) */
   employeeTeam: "/my-team",
+  /** Сотрудник: рабочий стол ИИ-наставника (чат, компетенции, таймлайн) */
+  employeeCabinet: "/cabinet",
+  /** Сотрудник: мои курсы и подбор */
+  employeeCourses: "/courses",
+  /** Сотрудник: аналитика обучения */
+  employeeAnalytics: "/analytics",
+  /** Сотрудник: заявки на обучение (ИПР) */
+  employeeIdp: "/idp",
+  /** Сотрудник: сертификаты */
+  employeeCertificates: "/certificates",
+  /** Сотрудник: поддержка */
+  employeeSupport: "/support",
+  /** Сотрудник: настройки профиля */
+  employeeSettings: "/settings",
   /** Руководитель: дашборд */
   manager: "/manager",
   /** Руководитель: аналитика команды */
@@ -20,8 +36,6 @@ export const ROUTE_PATHS = {
   managerCourses: "/manager/courses",
   /** Руководитель: компетенции команды */
   managerCompetencies: "/manager/competencies",
-  /** Руководитель: календарь (отдельно от календаря сотрудника /employee/calendar) */
-  managerCalendar: "/manager/calendar",
   /** Руководитель: отчёты по команде */
   managerReports: "/manager/reports",
   /** Руководитель: достижения и сертификаты команды (сводка) */
@@ -29,7 +43,7 @@ export const ROUTE_PATHS = {
   /** Устаревший URL → редирект на ROUTE_PATHS.manager */
   teamLegacy: "/team",
   hr: "/hr",
-  /** HR: дашборд KPI, графики, заявки */
+  /** HR: дашборд, графики, заявки */
   hrDashboard: "/hr/dashboard",
   hrEmployees: "/hr/employees",
   /** HR: индивидуальные траектории развития */
@@ -38,6 +52,8 @@ export const ROUTE_PATHS = {
   hrMentor: "/hr/mentor",
   /** HR: каталог курсов (внешние + внутренние) */
   hrCatalog: "/hr/catalog",
+  /** HR: свои курсы и назначение сотрудникам */
+  hrAssignCourses: "/hr/assign-courses",
   /** HR: заявки на обучение (очередь L&D) */
   hrApplications: "/hr/applications",
   /** HR: матрица компетенций */

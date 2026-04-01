@@ -77,7 +77,7 @@ export function HRCertificatesPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -167,7 +167,7 @@ export function HRCertificatesPage() {
                         textAlign: "left",
                         padding: "12px 16px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -190,10 +190,10 @@ export function HRCertificatesPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 16px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000" }}>{r.employeeName}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000" }}>{r.employeeName}</span>
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.department}</td>
-                      <td style={{ padding: "14px 16px", fontSize: "13px", fontWeight: "600", color: "#000000", maxWidth: "260px", lineHeight: 1.35 }}>
+                      <td style={{ padding: "14px 16px", fontSize: "13px", fontWeight: "500", color: "#000000", maxWidth: "260px", lineHeight: 1.35 }}>
                         {r.title}
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.issuer}</td>
@@ -207,7 +207,7 @@ export function HRCertificatesPage() {
                             padding: "3px 9px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             color: "#000000",
                             background: st.bg,
                             border: `1px solid ${st.border}`,

@@ -2,28 +2,28 @@
 export const teamMembersForSearch = [
   {
     name: "Елена Волкова",
-    role: "Руководитель направления · Platform",
+    role: "Руководитель направления · платформа",
     email: "e.volkova@company.ru",
     initials: "ЕВ",
     grad: "linear-gradient(135deg,#e3000b,#81d0f5)",
   },
   {
     name: "Михаил Петров",
-    role: "Senior Software Engineer",
+    role: "Ведущий инженер-программист",
     email: "m.petrov@company.ru",
     initials: "МП",
     grad: "linear-gradient(135deg,#81d0f5,#e3000b)",
   },
   {
     name: "Ольга Сидорова",
-    role: "Middle QA Engineer",
+    role: "Инженер по тестированию (Middle)",
     email: "o.sidorova@company.ru",
     initials: "ОС",
     grad: "linear-gradient(135deg,#e3000b,#81d0f5)",
   },
   {
     name: "Игорь Никифоров",
-    role: "DevOps Engineer",
+    role: "Инженер по инфраструктуре (DevOps)",
     email: "i.nikiforov@company.ru",
     initials: "ИН",
     grad: "linear-gradient(135deg,#81d0f5,#e3000b)",

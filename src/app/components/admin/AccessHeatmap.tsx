@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 import { Download, Filter, Lock, Unlock, Eye } from "lucide-react";
+import { downloadTextFile, showAdminToast } from "../../lib/adminToast";
 
 const roles = [
   "Администратор",
-  "L&D Директор",
+  "Директор по обучению и развитию (L&D)",
   "HR-менеджер",
   "Руководитель",
   "Сотрудник",
@@ -41,14 +43,29 @@ const levelCfg = [
 ];
 
 const levelLabels = ["—", "R", "R/W", "ADM"];
-const levelColors = ["rgba(0,0,0,0.06)", "#81d0f5", "#e3000b", "#c40009"];
 
 interface TooltipState { x: number; y: number; role: string; mod: string; level: number }
 
 export function AccessHeatmap() {
+  const navigate = useNavigate();
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const [filterRole, setFilterRole] = useState<string | null>(null);
+
+  const onFilter = () => {
+    navigate("/admin/access");
+    showAdminToast("Открыта страница «Права доступа». Здесь — обзор матрицы.");
+  };
+
+  const onDownload = () => {
+    const header = ["Роль", ...modules.map((m) => m.replace(/\n/g, " "))].join(";");
+    const rows = roles.map((role, ri) =>
+      [role.replace(/"/g, '""'), ...accessMatrix[ri].map((v) => levelCfg[v].label)].join(";"),
+    );
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadTextFile(`eso-access-matrix-${stamp}.csv`, [header, ...rows].join("\r\n"), "text/csv;charset=utf-8");
+    showAdminToast("Матрица доступа сохранена в CSV.");
+  };
 
   return (
     <div className="glass-card" style={{ padding: "24px", minWidth: 0 }}>
@@ -57,32 +74,50 @@ export function AccessHeatmap() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <div style={{ width: "4px", height: "18px", borderRadius: "4px", background: "linear-gradient(180deg,#e3000b,#81d0f5)" }} />
-            <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#000000", margin: 0 }}>Heatmap доступа</h3>
-            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.14)", border: "1px solid rgba(129,208,245,0.35)", fontSize: "10px", fontWeight: "600", color: "#000000" }}>7 × 8</div>
+            <h3 style={{ fontSize: "15px", fontWeight: "500", color: "#000000", margin: 0 }}>Heatmap доступа</h3>
+            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.14)", border: "1px solid rgba(129,208,245,0.35)", fontSize: "10px", fontWeight: "500", color: "#000000" }}>7 × 8</div>
           </div>
           <p style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", margin: 0 }}>Матрица прав доступа по ролям и системным модулям</p>
         </div>
         <div style={{ display: "flex", gap: "7px" }}>
-          {[Filter, Download].map((Icon, i) => (
-            <button
-              key={i}
-              type="button"
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "8px",
-                background: "rgba(129,208,245,0.06)",
-                border: "1px solid rgba(0,0,0,0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: "#000000",
-              }}
-            >
-              <Icon size={13} />
-            </button>
-          ))}
+          <button
+            type="button"
+            title="Права доступа"
+            onClick={onFilter}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "rgba(129,208,245,0.06)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Filter size={13} />
+          </button>
+          <button
+            type="button"
+            title="Скачать CSV"
+            onClick={onDownload}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "rgba(129,208,245,0.06)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Download size={13} />
+          </button>
         </div>
       </div>
 
@@ -91,7 +126,7 @@ export function AccessHeatmap() {
         {levelCfg.map((l, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
             <div style={{ width: "20px", height: "20px", borderRadius: "5px", background: l.color, border: `1px solid ${l.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: "8px", fontWeight: "800", color: l.text }}>{levelLabels[i]}</span>
+              <span style={{ fontSize: "8px", fontWeight: "600", color: l.text }}>{levelLabels[i]}</span>
             </div>
             <span style={{ fontSize: "10.5px", color: "rgba(0,0,0,0.55)" }}>{l.label}</span>
           </div>
@@ -107,7 +142,7 @@ export function AccessHeatmap() {
               <th style={{ width: "130px", minWidth: "130px" }} />
               {modules.map((m, ci) => (
                 <th key={ci} style={{ textAlign: "center", paddingBottom: "6px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: "600", color: "rgba(0,0,0,0.55)", whiteSpace: "nowrap" }}>{m}</div>
+                  <div style={{ fontSize: "10px", fontWeight: "500", color: "rgba(0,0,0,0.55)", whiteSpace: "nowrap" }}>{m}</div>
                 </th>
               ))}
               <th style={{ width: "46px", textAlign: "center", paddingBottom: "6px" }}>
@@ -160,9 +195,9 @@ export function AccessHeatmap() {
                   {/* Rights summary */}
                   <td style={{ textAlign: "center" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px", alignItems: "center" }}>
-                      {adminCount > 0 && <div style={{ width: "30px", fontSize: "9px", fontWeight: "700", color: "#e3000b", background: "rgba(227,0,11,0.12)", borderRadius: "4px", padding: "1px 3px" }}>ADM:{adminCount}</div>}
-                      {rwCount  > 0 && <div style={{ width: "30px", fontSize: "9px", fontWeight: "700", color: "#81d0f5", background: "rgba(129,208,245,0.15)", borderRadius: "4px", padding: "1px 3px" }}>R/W:{rwCount}</div>}
-                      {rCount   > 0 && <div style={{ width: "30px", fontSize: "9px", fontWeight: "700", color: "#000000", background: "rgba(0,0,0,0.06)", borderRadius: "4px", padding: "1px 3px" }}>R:{rCount}</div>}
+                      {adminCount > 0 && <div style={{ width: "30px", fontSize: "9px", fontWeight: "500", color: "#e3000b", background: "rgba(227,0,11,0.12)", borderRadius: "4px", padding: "1px 3px" }}>ADM:{adminCount}</div>}
+                      {rwCount  > 0 && <div style={{ width: "30px", fontSize: "9px", fontWeight: "500", color: "#81d0f5", background: "rgba(129,208,245,0.15)", borderRadius: "4px", padding: "1px 3px" }}>R/W:{rwCount}</div>}
+                      {rCount   > 0 && <div style={{ width: "30px", fontSize: "9px", fontWeight: "500", color: "#000000", background: "rgba(0,0,0,0.06)", borderRadius: "4px", padding: "1px 3px" }}>R:{rCount}</div>}
                     </div>
                   </td>
                 </tr>
@@ -181,7 +216,7 @@ export function AccessHeatmap() {
           return (
             <div key={m} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", flexShrink: 0 }}>
               <div style={{ width: "36px", height: "24px", borderRadius: "6px", background: cfg.color, border: `1px solid ${cfg.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: "9px", fontWeight: "800", color: cfg.text }}>{levelLabels[maxLevel]}</span>
+                <span style={{ fontSize: "9px", fontWeight: "600", color: cfg.text }}>{levelLabels[maxLevel]}</span>
               </div>
               <span style={{ fontSize: "9px", color: "rgba(0,0,0,0.45)", textAlign: "center", whiteSpace: "nowrap" }}>{m}</span>
             </div>
@@ -193,10 +228,10 @@ export function AccessHeatmap() {
       {tooltip && (
         <div style={{ position: "fixed", left: tooltip.x, top: tooltip.y, transform: "translate(-50%,-100%)", zIndex: 1000, pointerEvents: "none" }}>
           <div style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "12px", padding: "10px 14px", minWidth: "170px", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
-            <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", marginBottom: "2px" }}>{tooltip.role}</div>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", marginBottom: "2px" }}>{tooltip.role}</div>
             <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.55)", marginBottom: "7px" }}>{tooltip.mod}</div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ padding: "3px 10px", borderRadius: "20px", background: levelCfg[tooltip.level].color, border: `1px solid ${levelCfg[tooltip.level].border}`, fontSize: "11.5px", fontWeight: "700", color: levelCfg[tooltip.level].text }}>{levelCfg[tooltip.level].label}</div>
+              <div style={{ padding: "3px 10px", borderRadius: "20px", background: levelCfg[tooltip.level].color, border: `1px solid ${levelCfg[tooltip.level].border}`, fontSize: "11.5px", fontWeight: "500", color: levelCfg[tooltip.level].text }}>{levelCfg[tooltip.level].label}</div>
               {tooltip.level > 0 && <span style={{ fontSize: "10px", color: "rgba(0,0,0,0.4)" }}>Изменить →</span>}
             </div>
           </div>

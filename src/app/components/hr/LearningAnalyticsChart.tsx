@@ -1,31 +1,20 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import type { TooltipProps } from "recharts";
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer, Area, AreaChart,
+  ResponsiveContainer, Area, AreaChart,
   PieChart, Pie, Cell, Sector
 } from "recharts";
 import { Download, Filter, BarChart2, PieChart as PieIcon } from "lucide-react";
-
-const monthlyData = [
-  { month: "Янв", завершено: 38, начато: 52, отменено: 4, satisfaction: 82 },
-  { month: "Фев", завершено: 45, начато: 61, отменено: 3, satisfaction: 84 },
-  { month: "Мар", завершено: 42, начато: 57, отменено: 5, satisfaction: 81 },
-  { month: "Апр", завершено: 55, начато: 70, отменено: 2, satisfaction: 87 },
-  { month: "Май", завершено: 61, начато: 76, отменено: 3, satisfaction: 88 },
-  { month: "Июн", завершено: 58, начато: 72, отменено: 6, satisfaction: 85 },
-  { month: "Июл", завершено: 48, начато: 63, отменено: 4, satisfaction: 83 },
-  { month: "Авг", завершено: 52, начато: 68, отменено: 3, satisfaction: 86 },
-  { month: "Сен", завершено: 67, начато: 84, отменено: 2, satisfaction: 90 },
-  { month: "Окт", завершено: 72, начато: 89, отменено: 3, satisfaction: 91 },
-  { month: "Ноя", завершено: 68, начато: 85, отменено: 4, satisfaction: 89 },
-  { month: "Дек", завершено: 80, начато: 97, отменено: 2, satisfaction: 92 },
-];
+import { buildLearningMonthlyChartData, getHrDashboardMetrics } from "../../lib/hrDashboardMetrics";
+import { useHrDataRevision } from "../../hooks/useHrDataRevision";
+import { downloadCsv } from "../../lib/hrTableExport";
 
 const distributionData = [
   { name: "Техн. экспертиза", value: 34 },
   { name: "Цифровая эфф.", value: 22 },
   { name: "Управленческая", value: 18 },
-  { name: "Soft Skills", value: 14 },
+  { name: "Гибкие навыки", value: 14 },
   { name: "Безопасность", value: 8 },
   { name: "Иное", value: 4 },
 ];
@@ -35,30 +24,54 @@ function pieSliceColor(i: number) {
   return BRAND_PIE[i % 3];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: "rgba(255,255,255,0.98)", border: "1px solid rgba(129,208,245,0.4)", borderRadius: "12px", padding: "12px 16px", boxShadow: "0 12px 40px rgba(0,0,0,0.08), 0 0 0 1px rgba(227,0,11,0.06)", backdropFilter: "blur(20px)", minWidth: "180px" }}>
-      <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", marginBottom: "8px" }}>{label}</div>
-      {payload.map((p: any, i: number) => (
+      <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", marginBottom: "8px" }}>{label}</div>
+      {payload.map((p, i: number) => (
         <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: "16px", marginBottom: "4px", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: p.color }} />
             <span style={{ fontSize: "11px", color: "#000000" }}>{p.name}</span>
           </div>
-          <span style={{ fontSize: "12px", fontWeight: "700", color: "#000000" }}>{p.value}{p.name === "satisfaction" ? "%" : ""}</span>
+          <span style={{ fontSize: "12px", fontWeight: "500", color: "#000000" }}>{p.value}{p.name === "satisfaction" ? "%" : ""}</span>
         </div>
       ))}
     </div>
   );
 };
 
-const renderActiveShape = (props: any) => {
+type PieActiveSectorProps = {
+  cx?: number;
+  cy?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  startAngle?: number;
+  endAngle?: number;
+  fill?: string;
+  payload?: { name?: string };
+  value?: number;
+};
+
+const renderActiveShape = (props: PieActiveSectorProps) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value } = props;
+  if (
+    cx == null ||
+    cy == null ||
+    innerRadius == null ||
+    outerRadius == null ||
+    startAngle == null ||
+    endAngle == null ||
+    fill == null
+  ) {
+    return <g />;
+  }
+  const label = payload?.name ?? "";
   return (
     <g>
       <text x={cx} y={cy - 10} textAnchor="middle" fill="#000000" fontSize={15} fontWeight={800}>{value}%</text>
-      <text x={cx} y={cy + 10} textAnchor="middle" fill="#000000" fontSize={10}>{payload.name}</text>
+      <text x={cx} y={cy + 10} textAnchor="middle" fill="#000000" fontSize={10}>{label}</text>
       <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius + 6} startAngle={startAngle} endAngle={endAngle} fill={fill} style={{ filter: `drop-shadow(0 0 8px ${fill}88)` }} />
       <Sector cx={cx} cy={cy} innerRadius={innerRadius - 4} outerRadius={innerRadius - 1} startAngle={startAngle} endAngle={endAngle} fill={fill} />
     </g>
@@ -66,8 +79,24 @@ const renderActiveShape = (props: any) => {
 };
 
 export function LearningAnalyticsChart() {
+  const dataRev = useHrDataRevision();
   const [activeIndex, setActiveIndex] = useState(0);
   const [tab, setTab] = useState<"bar" | "area">("bar");
+  const [hideFutureMonths, setHideFutureMonths] = useState(false);
+
+  const monthlyData = useMemo(() => {
+    void dataRev;
+    const raw = buildLearningMonthlyChartData(getHrDashboardMetrics());
+    if (!hideFutureMonths) return raw;
+    const cm = new Date().getMonth();
+    return raw.slice(0, cm + 1);
+  }, [dataRev, hideFutureMonths]);
+
+  const yearLabel = new Date().getFullYear();
+
+  const exportCsv = () => {
+    downloadCsv(`learning-analytics-${yearLabel}.csv`, ["Месяц", "Завершено", "Начато", "Отменено", "Удовлетворённость %"], monthlyData.map((r) => [r.month, String(r.завершено), String(r.начато), String(r.отменено), String(r.satisfaction)]));
+  };
 
   return (
     <div className="glass-card" style={{ padding: "24px", minWidth: 0 }}>
@@ -76,11 +105,12 @@ export function LearningAnalyticsChart() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
             <div style={{ width: "4px", height: "18px", borderRadius: "4px", background: "linear-gradient(180deg,#e3000b,#81d0f5)" }} />
-            <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#000000", margin: 0 }}>Аналитика обучения</h3>
-            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.14)", border: "1px solid rgba(129,208,245,0.35)", fontSize: "10px", fontWeight: "600", color: "#000000" }}>2026</div>
+            <h3 style={{ fontSize: "15px", fontWeight: "500", color: "#000000", margin: 0 }}>Аналитика обучения</h3>
+            <div style={{ padding: "3px 9px", borderRadius: "20px", background: "rgba(129,208,245,0.14)", border: "1px solid rgba(129,208,245,0.35)", fontSize: "10px", fontWeight: "500", color: "#000000" }}>{yearLabel}</div>
           </div>
           <p style={{ fontSize: "12px", color: "#000000", margin: 0 }}>
-            Динамика курсов по месяцам · Индекс удовлетворённости · Распределение по направлениям
+            Динамика масштабируется по справочнику HR (в обучении и средний % плана).{" "}
+            {hideFutureMonths ? "Показаны только прошедшие месяцы года." : ""}
           </p>
         </div>
         <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
@@ -88,16 +118,49 @@ export function LearningAnalyticsChart() {
           <div style={{ display: "flex", background: "rgba(0,0,0,0.04)", borderRadius: "9px", border: "1px solid rgba(0,0,0,0.08)", padding: "3px" }}>
             {([["bar", BarChart2], ["area", PieIcon]] as const).map(([t, Icon]) => (
               <button key={t} onClick={() => setTab(t as "bar" | "area")}
-                style={{ display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px", borderRadius: "7px", background: tab === t ? "rgba(227,0,11,0.1)" : "transparent", border: "none", color: tab === t ? "#e3000b" : "#000000", fontSize: "11px", fontWeight: "600", cursor: "pointer", fontFamily: "var(--font-sans)", transition: "all .15s" }}>
+                style={{ display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px", borderRadius: "7px", background: tab === t ? "rgba(227,0,11,0.1)" : "transparent", border: "none", color: tab === t ? "#e3000b" : "#000000", fontSize: "11px", fontWeight: "500", cursor: "pointer", fontFamily: "var(--font-sans)", transition: "all .15s" }}>
                 <Icon size={12} />
               </button>
             ))}
           </div>
-          {[Filter, Download].map((Icon, i) => (
-            <button key={i} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#000000" }}>
-              <Icon size={13} />
-            </button>
-          ))}
+          <button
+            type="button"
+            title={hideFutureMonths ? "Показать все месяцы года" : "Только прошедшие месяцы"}
+            onClick={() => setHideFutureMonths((v) => !v)}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: hideFutureMonths ? "rgba(227,0,11,0.1)" : "rgba(0,0,0,0.04)",
+              border: hideFutureMonths ? "1px solid rgba(227,0,11,0.28)" : "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Filter size={13} />
+          </button>
+          <button
+            type="button"
+            title="Скачать CSV"
+            onClick={exportCsv}
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              background: "rgba(0,0,0,0.04)",
+              border: "1px solid rgba(0,0,0,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#000000",
+            }}
+          >
+            <Download size={13} />
+          </button>
         </div>
       </div>
 
@@ -164,12 +227,12 @@ export function LearningAnalyticsChart() {
 
         {/* Pie chart — distribution */}
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: "11.5px", fontWeight: "600", color: "#000000", marginBottom: "10px" }}>Распределение по направлениям</div>
+          <div style={{ fontSize: "11.5px", fontWeight: "500", color: "#000000", marginBottom: "10px" }}>Распределение по направлениям</div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie
                 activeIndex={activeIndex}
-                activeShape={renderActiveShape}
+                activeShape={(p: unknown) => renderActiveShape(p as PieActiveSectorProps)}
                 data={distributionData}
                 cx="50%"
                 cy="50%"
@@ -193,7 +256,7 @@ export function LearningAnalyticsChart() {
                   <div style={{ width: "7px", height: "7px", borderRadius: "2px", background: c }} />
                   <span style={{ fontSize: "10.5px", color: "#000000" }}>{d.name}</span>
                 </div>
-                <span style={{ fontSize: "11px", fontWeight: "700", color: "#000000" }}>{d.value}%</span>
+                <span style={{ fontSize: "11px", fontWeight: "500", color: "#000000" }}>{d.value}%</span>
               </div>
               );
             })}

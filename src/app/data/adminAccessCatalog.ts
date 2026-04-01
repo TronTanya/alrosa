@@ -24,7 +24,7 @@ export const adminAccessPoliciesSeed: AdminAccessPolicyRow[] = [
   },
   {
     id: "pol-hr-ld",
-    policyName: "HR / L&D полный доступ",
+    policyName: "HR / L&D (кадры / обучение и развитие) — полный доступ",
     resource: "/hr/* · заявки · отчёты",
     audience: "Роль «Куратор обучения»",
     level: "write",

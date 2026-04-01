@@ -68,7 +68,7 @@ export const hrEventsCatalog: HrEventRow[] = [
   },
   {
     id: "5",
-    title: "DevOps Day внутренний",
+    title: "Внутренний день девопс",
     kind: "Конференция",
     date: "18.03.2026",
     time: "10:00",
@@ -80,7 +80,7 @@ export const hrEventsCatalog: HrEventRow[] = [
   },
   {
     id: "6",
-    title: "Soft Skills: обратная связь 360°",
+    title: "Гибкие навыки: обратная связь 360°",
     kind: "Тренинг",
     date: "25.03.2026",
     time: "11:00–14:00",

@@ -1,12 +1,13 @@
 import { createBrowserRouter, redirect } from "react-router";
 /**
  * ЛК — EmployeeShell (+ /my-team «Команда» для сотрудника).
- * Руководитель — ManagerShell: /manager, …, /manager/calendar, /manager/reports, /manager/achievements, /manager/competencies; /team → редирект на /manager.
+ * Руководитель — ManagerShell: /manager, …, /manager/reports, /manager/achievements, /manager/competencies; /team → редирект на /manager.
  */
 import { RequireAuth } from "./RequireAuth";
 import { Root } from "./Root";
 import { EmployeeShell } from "./EmployeeShell";
 import { LoginPage } from "./pages/LoginPage";
+import { YandexOAuthTokenPage } from "./pages/YandexOAuthTokenPage";
 import { HomePage } from "./pages/HomePage";
 import { EmployeePage } from "./pages/EmployeePage";
 import { CoursesPage } from "./pages/CoursesPage";
@@ -33,6 +34,7 @@ import { HREmployeesPage } from "./pages/HREmployeesPage";
 import { HRDevelopmentTrajectoryPage } from "./pages/HRDevelopmentTrajectoryPage";
 import { HRAIMentorPage } from "./pages/HRAIMentorPage";
 import { HRCoursesCatalogPage } from "./pages/HRCoursesCatalogPage";
+import { HRAssignCoursesPage } from "./pages/HRAssignCoursesPage";
 import { HRApplicationsPage } from "./pages/HRApplicationsPage";
 import { HRCompetenciesPage } from "./pages/HRCompetenciesPage";
 import { HREventsPage } from "./pages/HREventsPage";
@@ -54,12 +56,14 @@ import { AdminSystemReportsPage } from "./pages/AdminSystemReportsPage";
 import { AdminServersPage } from "./pages/AdminServersPage";
 import { AdminAiModulesPage } from "./pages/AdminAiModulesPage";
 import { AdminDocumentationPage } from "./pages/AdminDocumentationPage";
+import { AdminDocumentationArticlePage } from "./pages/AdminDocumentationArticlePage";
 import { AdminConfigurationPage } from "./pages/AdminConfigurationPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ROUTE_PATHS } from "./routePaths";
 
 export const router = createBrowserRouter([
   { path: "/login", Component: LoginPage },
+  { path: "/yandex-oauth-token", Component: YandexOAuthTokenPage },
   {
     path: "/",
     Component: RequireAuth,
@@ -77,7 +81,7 @@ export const router = createBrowserRouter([
               { path: "mentor", Component: ManagerAIMentorPage },
               { path: "courses", Component: ManagerCoursesPage },
               { path: "competencies", Component: ManagerCompetenciesPage },
-              { path: "calendar", Component: EmployeeCalendarPage },
+              { path: "calendar", loader: () => redirect(ROUTE_PATHS.manager) },
               { path: "reports", Component: ManagerReportsPage },
               { path: "achievements", Component: ManagerAchievementsPage },
             ],
@@ -93,6 +97,7 @@ export const router = createBrowserRouter([
               { path: "trajectory", Component: HRDevelopmentTrajectoryPage },
               { path: "mentor", Component: HRAIMentorPage },
               { path: "catalog", Component: HRCoursesCatalogPage },
+              { path: "assign-courses", Component: HRAssignCoursesPage },
               { path: "applications", Component: HRApplicationsPage },
               { path: "competencies", Component: HRCompetenciesPage },
               { path: "events", Component: HREventsPage },
@@ -119,6 +124,7 @@ export const router = createBrowserRouter([
               { path: "servers", Component: AdminServersPage },
               { path: "ai-modules", Component: AdminAiModulesPage },
               { path: "documentation", Component: AdminDocumentationPage },
+              { path: "documentation/:docId", Component: AdminDocumentationArticlePage },
               { path: "configuration", Component: AdminConfigurationPage },
             ],
           },

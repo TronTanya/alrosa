@@ -30,10 +30,10 @@ export const adminIntegrationsSeed: AdminIntegrationRow[] = [
     detail: "Истёк сертификат TLS на стороне провайдера.",
   },
   {
-    id: "int-giga",
-    name: "GigaChat Enterprise",
+    id: "int-alice",
+    name: "Яндекс Алиса (Enterprise)",
     category: "ИИ",
-    endpoint: "gigachat.sber…",
+    endpoint: "alice.yandex.cloud…",
     status: "connected",
     lastCheck: "1 мин назад",
     detail: "ИИ-Куратор, чат HR, подсказки в заявках.",

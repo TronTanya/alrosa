@@ -72,7 +72,7 @@
 
 .alrosa-wordmark__alrosa {
   flex-shrink: 0;
-  font-weight: 700;
+  font-weight: 500;
   font-size: clamp(15px, 2.6vw, 22px);
   letter-spacing: 0.06em;
   color: #000000;
@@ -265,7 +265,7 @@
 
 .landing-metric-card__value {
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 500;
   color: #000000;
   letter-spacing: -0.5px;
   margin-top: 2px;
@@ -334,7 +334,7 @@
 
 .landing-cta__title {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 500;
   color: #000000;
   margin-bottom: 4px;
 }
@@ -421,7 +421,7 @@
   background: linear-gradient(135deg, rgba(227, 0, 11, 0.12), rgba(129, 208, 245, 0.15));
   color: #000000;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;

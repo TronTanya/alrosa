@@ -89,7 +89,7 @@ export function AdminCoursesPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -105,7 +105,7 @@ export function AdminCoursesPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -219,7 +219,7 @@ export function AdminCoursesPage() {
                         textAlign: h ? "left" : "right",
                         padding: "12px 16px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -243,7 +243,7 @@ export function AdminCoursesPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 16px", maxWidth: "320px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.title}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.title}</span>
                         <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.5)", marginTop: "4px", lineHeight: 1.4 }}>
                           {r.tags.slice(0, 3).join(" · ")}
                         </div>
@@ -256,7 +256,7 @@ export function AdminCoursesPage() {
                             padding: "4px 10px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             background: fc.bg,
                             border: `1px solid ${fc.border}`,
                             color: "#000000",
@@ -281,7 +281,7 @@ export function AdminCoursesPage() {
                             background: vs.bg,
                             color: vs.color,
                             fontSize: "12px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             fontFamily: "var(--font-sans)",
                             cursor: "pointer",
                             outline: "none",
@@ -295,7 +295,7 @@ export function AdminCoursesPage() {
                           ))}
                         </select>
                       </td>
-                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "600", color: "#000000", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "500", color: "#000000", whiteSpace: "nowrap" }}>
                         {r.enrollments}
                       </td>
                       <td style={{ padding: "14px 16px", textAlign: "right", verticalAlign: "middle" }}>

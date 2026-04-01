@@ -17,7 +17,7 @@ import {
   Activity,
   Database,
 } from "lucide-react";
-import { brandIcon } from "../../lib/brandIcons";
+import { brandIcon, type BrandLucideIcon } from "../../lib/brandIcons";
 
 function notifySoon(label: string) {
   const el = document.createElement("div");
@@ -34,7 +34,7 @@ function notifySoon(label: string) {
     padding: "12px 18px",
     fontSize: "13px",
     fontFamily: "var(--font-sans)",
-    fontWeight: "600",
+    fontWeight: "500",
     maxWidth: "340px",
     boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
   });
@@ -46,7 +46,7 @@ function notifySoon(label: string) {
 }
 
 type NavDef = {
-  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+  icon: BrandLucideIcon;
   label: string;
   to?: string;
   end?: boolean;
@@ -116,7 +116,7 @@ function AdminNavRow({
             alignItems: "center",
             justifyContent: "center",
             fontSize: "10px",
-            fontWeight: "700",
+            fontWeight: "500",
             color: "#000000",
             padding: "0 5px",
           }}
@@ -179,7 +179,7 @@ export function AdminSidebar() {
       <div
         style={{
           fontSize: "10px",
-          fontWeight: "600",
+          fontWeight: "500",
           letterSpacing: "1.2px",
           color: "#000000",
           textTransform: "uppercase",
@@ -236,12 +236,12 @@ export function AdminSidebar() {
         {[
           { label: "API Gateway", val: 98, color: "#e3000b" },
           { label: "База данных", val: 94, color: "#81d0f5" },
-          { label: "GigaChat AI", val: 100, color: "#e3000b" },
+          { label: "Яндекс Алиса", val: 100, color: "#e3000b" },
         ].map((s) => (
           <div key={s.label} style={{ marginBottom: "7px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
               <span style={{ fontSize: "10px", color: "rgba(0,0,0,0.55)" }}>{s.label}</span>
-              <span style={{ fontSize: "10px", fontWeight: "700", color: "#000000" }}>{s.val}%</span>
+              <span style={{ fontSize: "10px", fontWeight: "500", color: "#000000" }}>{s.val}%</span>
             </div>
             <div style={{ height: "3px", borderRadius: "3px", background: "rgba(129,208,245,0.12)" }}>
               <div
@@ -265,7 +265,7 @@ export function AdminSidebar() {
         <div
           style={{
             fontSize: "10px",
-            fontWeight: "600",
+            fontWeight: "500",
             letterSpacing: "1.2px",
             color: "#000000",
             textTransform: "uppercase",

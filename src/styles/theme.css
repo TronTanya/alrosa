@@ -24,11 +24,11 @@
   --input: rgba(0, 0, 0, 0.08);
   --input-background: #f5f5f7;
   --switch-background: #e8e8ec;
-  /* Demi ≈ 600, Regular = 400 по брендбуку */
-  --font-weight-medium: 600;
+  /* Medium без лишней жирности (ближе к Regular) */
+  --font-weight-medium: 500;
   --font-weight-normal: 400;
   --font-weight-light: 300;
-  --font-weight-bold: 700;
+  --font-weight-bold: 600;
   --ring: #81d0f5;
   --chart-1: #e3000b;
   --chart-2: #81d0f5;

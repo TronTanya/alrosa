@@ -1,5 +1,20 @@
 import { aiPicks, assignedCourses } from "../pages/CoursesPage";
 import { teamMembersForSearch } from "../data/teamSearchMembers";
+import { ROUTE_PATHS } from "../routePaths";
+import { readTeamWidePlanCourses } from "./teamWideCourseEnrollment";
+
+/** Плановые курсы + записанные руководителем на всю команду (localStorage). */
+function assignedCoursesIncludingTeam(): { title: string }[] {
+  const seen = new Set(assignedCourses.map((c) => c.title));
+  const out: { title: string }[] = assignedCourses.map((c) => ({ title: c.title }));
+  for (const c of readTeamWidePlanCourses()) {
+    if (!seen.has(c.title)) {
+      seen.add(c.title);
+      out.push({ title: c.title });
+    }
+  }
+  return out;
+}
 
 export type PortalSearchKind = "course" | "skill" | "colleague";
 
@@ -25,11 +40,11 @@ const extraSkillLabels = [
   "Лидерство",
   "Английский",
   "Безопасность",
-  "Kubernetes",
+  "Кубернетес",
   "Микросервисы",
-  "System Design",
+  "Проектирование систем",
   "Коммуникации",
-  "Agile",
+  "Гибкие методологии",
   "SQL",
   "Тестирование",
 ];
@@ -52,18 +67,18 @@ export function filterEmployeePortalSearch(query: string): {
         kind: "course",
         title: p.title,
         subtitle: p.provider,
-        path: "/courses",
+        path: ROUTE_PATHS.employeeCourses,
       });
     }
   }
-  for (const c of assignedCourses) {
+  for (const c of assignedCoursesIncludingTeam()) {
     if (matchesQuery(q, c.title)) {
       courses.push({
         id: `course-asg-${c.title}`,
         kind: "course",
         title: c.title,
         subtitle: "Назначенный курс",
-        path: "/courses",
+        path: ROUTE_PATHS.employeeCourses,
       });
     }
   }
@@ -82,7 +97,7 @@ export function filterEmployeePortalSearch(query: string): {
         kind: "skill",
         title: label,
         subtitle: "Заявки на обучение",
-        path: "/idp",
+        path: ROUTE_PATHS.employeeIdp,
       });
     }
   }
@@ -96,7 +111,7 @@ export function filterEmployeePortalSearch(query: string): {
         kind: "colleague",
         title: m.name,
         subtitle: m.role,
-        path: "/my-team",
+        path: ROUTE_PATHS.employeeTeam,
       });
     }
   }
@@ -113,16 +128,16 @@ export function getFullEmployeeSearchCatalog(): PortalSearchHit[] {
       kind: "course",
       title: p.title,
       subtitle: p.provider,
-      path: "/courses",
+      path: ROUTE_PATHS.employeeCourses,
     });
   }
-  for (const c of assignedCourses) {
+  for (const c of assignedCoursesIncludingTeam()) {
     courses.push({
       id: `course-asg-${c.title}`,
       kind: "course",
       title: c.title,
       subtitle: "Назначенный курс",
-      path: "/courses",
+      path: ROUTE_PATHS.employeeCourses,
     });
   }
 
@@ -139,7 +154,7 @@ export function getFullEmployeeSearchCatalog(): PortalSearchHit[] {
       kind: "skill" as const,
       title: label,
       subtitle: "Заявки на обучение",
-      path: "/idp",
+      path: ROUTE_PATHS.employeeIdp,
     }));
 
   const colleagues: PortalSearchHit[] = teamMembersForSearch.map((m) => ({
@@ -147,7 +162,7 @@ export function getFullEmployeeSearchCatalog(): PortalSearchHit[] {
     kind: "colleague" as const,
     title: m.name,
     subtitle: m.role,
-    path: "/my-team",
+    path: ROUTE_PATHS.employeeTeam,
   }));
 
   return [...courses, ...skills, ...colleagues];

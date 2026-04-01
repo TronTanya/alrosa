@@ -114,7 +114,7 @@ export function AdminAiModulesPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -130,7 +130,7 @@ export function AdminAiModulesPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -146,12 +146,12 @@ export function AdminAiModulesPage() {
                     background: "linear-gradient(135deg,rgba(227,0,11,.12),rgba(129,208,245,.1))",
                     border: "1px solid rgba(129,208,245,0.28)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
                   <Sparkles size={12} color="#e3000b" strokeWidth={brandIcon.swSm} />
-                  GigaChat Enterprise
+                  Яндекс Алиса Enterprise
                 </span>
               </div>
               <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "840px" }}>
@@ -186,10 +186,10 @@ export function AdminAiModulesPage() {
               className="glass-card"
               style={{ padding: "16px 18px" }}
             >
-              <div style={{ fontSize: "11px", fontWeight: "600", color: "rgba(0,0,0,0.55)", marginBottom: "6px", letterSpacing: "0.02em" }}>
+              <div style={{ fontSize: "11px", fontWeight: "500", color: "rgba(0,0,0,0.55)", marginBottom: "6px", letterSpacing: "0.02em" }}>
                 {card.label}
               </div>
-              <div style={{ fontSize: "22px", fontWeight: "800", color: "#000000", letterSpacing: "-0.5px" }}>{card.value}</div>
+              <div style={{ fontSize: "22px", fontWeight: "600", color: "#000000", letterSpacing: "-0.5px" }}>{card.value}</div>
               <div style={{ fontSize: "11px", color: "rgba(0,0,0,0.45)", marginTop: "4px" }}>{card.sub}</div>
             </motion.div>
           ))}
@@ -312,7 +312,7 @@ export function AdminAiModulesPage() {
                         textAlign: "left",
                         padding: "12px 14px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -336,7 +336,7 @@ export function AdminAiModulesPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 14px", maxWidth: "220px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
                       </td>
                       <td style={{ padding: "14px 14px" }}>
                         <span
@@ -345,7 +345,7 @@ export function AdminAiModulesPage() {
                             padding: "4px 10px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             background: cc.bg,
                             border: `1px solid ${cc.border}`,
                             color: "#000000",
@@ -358,11 +358,11 @@ export function AdminAiModulesPage() {
                       <td style={{ padding: "14px 14px", fontSize: "12px", color: "#000000", lineHeight: 1.45, maxWidth: "240px" }}>{r.purpose}</td>
                       <td style={{ padding: "14px 14px", fontSize: "12px", color: "rgba(0,0,0,0.85)", lineHeight: 1.4 }}>{r.modelLabel}</td>
                       <td style={{ padding: "14px 14px", fontSize: "12px", color: "#000000", whiteSpace: "nowrap" }}>{r.latencyMs} мс</td>
-                      <td style={{ padding: "14px 14px", fontSize: "12px", fontWeight: "600", color: "#000000", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "14px 14px", fontSize: "12px", fontWeight: "500", color: "#000000", whiteSpace: "nowrap" }}>
                         {r.requestsToday.toLocaleString("ru-RU")}
                       </td>
                       <td style={{ padding: "12px 14px", minWidth: "100px" }}>
-                        <div style={{ fontSize: "11px", fontWeight: "600", marginBottom: "4px", color: "#000000" }}>{r.quotaPct}%</div>
+                        <div style={{ fontSize: "11px", fontWeight: "500", marginBottom: "4px", color: "#000000" }}>{r.quotaPct}%</div>
                         <div style={{ height: "5px", borderRadius: "5px", background: "rgba(129,208,245,0.12)" }}>
                           <div
                             style={{
@@ -390,7 +390,7 @@ export function AdminAiModulesPage() {
                             background: st.bg,
                             color: st.color,
                             fontSize: "12px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             fontFamily: "var(--font-sans)",
                             cursor: "pointer",
                             outline: "none",

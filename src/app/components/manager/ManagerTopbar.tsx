@@ -6,9 +6,22 @@ import { AlrosaLogo } from "../AlrosaBrand";
 import { useMobileNav } from "../../contexts/MobileNavContext";
 import { brandIcon } from "../../lib/brandIcons";
 import {
+  hydrateNotificationReads,
+  loadNotificationReads,
+  setAllRead,
+  setOneRead,
+  SITE_NOTIF_READS_MANAGER,
+  SITE_NOTIFICATIONS_CHANGED,
+} from "../../lib/siteNotificationsStorage";
+import {
   MANAGER_TOPBAR_NOTIFICATIONS_INITIAL,
   type ManagerNotifIcon,
 } from "./managerTopbarNotifications";
+
+function buildManagerNotifications() {
+  const reads = loadNotificationReads(SITE_NOTIF_READS_MANAGER);
+  return hydrateNotificationReads(MANAGER_TOPBAR_NOTIFICATIONS_INITIAL, reads);
+}
 
 function ManagerNotifGlyph({ kind }: { kind: ManagerNotifIcon }) {
   const c = { size: 14 as const, strokeWidth: 1.75 };
@@ -20,7 +33,7 @@ function ManagerNotifGlyph({ kind }: { kind: ManagerNotifIcon }) {
 export function ManagerTopbar() {
   const [searchVal, setSearchVal] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(() => [...MANAGER_TOPBAR_NOTIFICATIONS_INITIAL]);
+  const [notifications, setNotifications] = useState(() => buildManagerNotifications());
   const notifWrapRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,12 +51,24 @@ export function ManagerTopbar() {
     return () => document.removeEventListener("mousedown", onDocDown);
   }, []);
 
+  useEffect(() => {
+    const sync = () => setNotifications(buildManagerNotifications());
+    sync();
+    window.addEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    return () => window.removeEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+  }, []);
+
   const markRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setOneRead(SITE_NOTIF_READS_MANAGER, id, true);
+    setNotifications(buildManagerNotifications());
   };
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setAllRead(
+      SITE_NOTIF_READS_MANAGER,
+      MANAGER_TOPBAR_NOTIFICATIONS_INITIAL.map((n) => n.id),
+    );
+    setNotifications(buildManagerNotifications());
   };
 
   return (
@@ -96,7 +121,7 @@ export function ManagerTopbar() {
               border: "1px solid rgba(129,208,245,0.15)",
               borderRadius: "6px",
               padding: "3px 6px",
-              fontWeight: 600,
+              fontWeight: 500,
             }}
           >
             ⌘K
@@ -175,7 +200,7 @@ export function ManagerTopbar() {
                   gap: "12px",
                 }}
               >
-                <span style={{ fontSize: "14px", fontWeight: 800, color: "#000000" }}>Уведомления</span>
+                <span style={{ fontSize: "14px", fontWeight: 600, color: "#000000" }}>Уведомления</span>
                 {unreadCount > 0 && (
                   <button
                     type="button"
@@ -186,7 +211,7 @@ export function ManagerTopbar() {
                       background: "transparent",
                       color: "#e3000b",
                       fontSize: "12px",
-                      fontWeight: 600,
+                      fontWeight: 500,
                       cursor: "pointer",
                       fontFamily: "inherit",
                     }}
@@ -235,7 +260,7 @@ export function ManagerTopbar() {
                       <ManagerNotifGlyph kind={n.icon} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "13px", fontWeight: 700, color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 500, color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
                       <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px", lineHeight: 1.45 }}>{n.body}</div>
                       <div style={{ fontSize: "10px", color: "#000000", marginTop: "6px", opacity: 0.75 }}>{n.time}</div>
                     </div>
@@ -304,7 +329,7 @@ export function ManagerTopbar() {
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "13px",
-                fontWeight: "800",
+                fontWeight: "600",
                 color: "#ffffff",
                 boxShadow: "0 0 20px rgba(0,82,204,0.45), 0 0 40px rgba(0,196,160,0.15)",
               }}
@@ -326,7 +351,7 @@ export function ManagerTopbar() {
             />
           </div>
           <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: "13px", fontWeight: "700", color: "rgba(255,255,255,0.95)", lineHeight: 1.25 }}>
+            <div style={{ fontSize: "13px", fontWeight: "500", color: "rgba(255,255,255,0.95)", lineHeight: 1.25 }}>
               Максим Лебедев
             </div>
             <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.48)", lineHeight: 1.25, maxWidth: "200px" }}>

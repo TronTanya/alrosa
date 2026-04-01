@@ -1,7 +1,8 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Users, Mail, Briefcase } from "lucide-react";
+import { Users, Mail, Briefcase, Award } from "lucide-react";
 import { teamMembersForSearch } from "../data/teamSearchMembers";
+import { getRegistryCertificatesByEmployeeName } from "../data/hrCertificatesRegistry";
 
 /**
  * Сотрудник: список коллег по команде (лёгкая страница в ЛК).
@@ -9,6 +10,7 @@ import { teamMembersForSearch } from "../data/teamSearchMembers";
  */
 export function EmployeeTeamPage() {
   const members = teamMembersForSearch;
+
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
@@ -29,7 +31,7 @@ export function EmployeeTeamPage() {
               <h1
                 style={{
                   fontSize: "21px",
-                  fontWeight: "800",
+                  fontWeight: "600",
                   color: "#000000",
                   letterSpacing: "-0.4px",
                   margin: 0,
@@ -40,7 +42,8 @@ export function EmployeeTeamPage() {
               </h1>
             </div>
             <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "720px" }}>
-              Ваша кросс-функциональная команда в «Алроса ИТ»: роли, контакты и состав подразделения Platform.
+              Ваша кросс-функциональная команда в «Алроса ИТ»: роли, контакты, сертификаты из корпоративного реестра и состав
+              подразделения Platform.
             </p>
           </div>
         </div>
@@ -53,7 +56,9 @@ export function EmployeeTeamPage() {
           gap: "14px",
         }}
       >
-        {members.map((m, i) => (
+        {members.map((m, i) => {
+          const colleagueCerts = getRegistryCertificatesByEmployeeName(m.name);
+          return (
           <motion.article
             key={m.email}
             initial={{ opacity: 0, y: 10 }}
@@ -80,7 +85,7 @@ export function EmployeeTeamPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "14px",
-                  fontWeight: "800",
+                  fontWeight: "600",
                   color: "#000000",
                   flexShrink: 0,
                   boxShadow: "0 4px 16px rgba(0,0,0,.12)",
@@ -89,7 +94,7 @@ export function EmployeeTeamPage() {
                 {m.initials}
               </div>
               <div style={{ minWidth: 0 }}>
-                <h2 style={{ fontSize: "15px", fontWeight: "800", color: "#000000", margin: 0, lineHeight: 1.3 }}>{m.name}</h2>
+                <h2 style={{ fontSize: "15px", fontWeight: "600", color: "#000000", margin: 0, lineHeight: 1.3 }}>{m.name}</h2>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px" }}>
                   <Briefcase size={12} style={{ color: "#000000", flexShrink: 0 }} />
                   <span style={{ fontSize: "12px", color: "#000000" }}>{m.role}</span>
@@ -105,14 +110,81 @@ export function EmployeeTeamPage() {
                 fontSize: "12px",
                 color: "#000000",
                 textDecoration: "none",
-                fontWeight: "600",
+                fontWeight: "500",
               }}
             >
               <Mail size={14} />
               {m.email}
             </a>
+
+            {colleagueCerts.length > 0 ? (
+              <div
+                style={{
+                  paddingTop: "12px",
+                  marginTop: "4px",
+                  borderTop: "1px solid rgba(129,208,245,.12)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <Award size={14} style={{ color: "#000000", flexShrink: 0 }} />
+                  <span style={{ fontSize: "11px", fontWeight: "600", color: "#000000", letterSpacing: "0.02em" }}>
+                    Сертификаты ({colleagueCerts.length})
+                  </span>
+                </div>
+                <ul style={{ margin: 0, padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {colleagueCerts.map((c) => (
+                    <li key={c.id} style={{ fontSize: "11px", color: "#000000", lineHeight: 1.45 }}>
+                      <span style={{ fontWeight: "500" }}>{c.title}</span>
+                      <span style={{ display: "block", opacity: 0.85, marginTop: "2px" }}>
+                        {c.issuer} · выдан {c.issuedAt}
+                        {c.expiresAt !== "—" ? ` · до ${c.expiresAt}` : ""}
+                      </span>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          marginTop: "4px",
+                          fontSize: "10px",
+                          fontWeight: "500",
+                          padding: "2px 8px",
+                          borderRadius: "8px",
+                          background:
+                            c.status === "Действует"
+                              ? "rgba(129,208,245,.12)"
+                              : c.status === "Истекает"
+                                ? "rgba(227,0,11,.08)"
+                                : "rgba(0,0,0,.06)",
+                          border: "1px solid rgba(0,0,0,.06)",
+                        }}
+                      >
+                        {c.status}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div
+                style={{
+                  paddingTop: "12px",
+                  marginTop: "4px",
+                  borderTop: "1px solid rgba(129,208,245,.08)",
+                  fontSize: "11px",
+                  color: "rgba(0,0,0,.55)",
+                }}
+              >
+                В реестре нет записей о сертификатах для этого сотрудника.
+              </div>
+            )}
           </motion.article>
-        ))}
+          );
+        })}
       </div>
     </>
   );

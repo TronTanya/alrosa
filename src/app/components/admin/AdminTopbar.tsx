@@ -16,17 +16,23 @@ import {
 import { useLocation, useNavigate } from "react-router";
 import { Breadcrumb } from "../Breadcrumb";
 import { AlrosaLogo } from "../AlrosaBrand";
-import { brandIcon } from "../../lib/brandIcons";
+import { brandIcon, type BrandLucideIcon } from "../../lib/brandIcons";
+import {
+  hydrateNotificationReads,
+  loadNotificationReads,
+  setAllRead,
+  setOneRead,
+  SITE_NOTIF_READS_ADMIN,
+  SITE_NOTIFICATIONS_CHANGED,
+} from "../../lib/siteNotificationsStorage";
 
 interface AdminTopbarProps {
   /** Доп. действие при переходе к пользователям (например демо-тост) */
   onAddUser?: () => void;
 }
 
-type LucideIcon = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
-
 const quickActions: {
-  icon: LucideIcon;
+  icon: BrandLucideIcon;
   label: string;
   variant: "neutral" | "accent";
   action: "users" | "database" | "servers" | "sync";
@@ -39,7 +45,8 @@ const quickActions: {
 
 function syncDemoToast() {
   const el = document.createElement("div");
-  el.textContent = "Демо: синхронизация справочников с AD и внешними системами запущена.";
+  el.textContent =
+    "Демо: в продукте здесь пойдёт синхронизация с AD; сейчас действие не выполняется.";
   Object.assign(el.style, {
     position: "fixed",
     bottom: "80px",
@@ -52,7 +59,7 @@ function syncDemoToast() {
     padding: "12px 18px",
     fontSize: "13px",
     fontFamily: "var(--font-sans)",
-    fontWeight: "600",
+    fontWeight: "500",
     maxWidth: "360px",
     boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
   });
@@ -79,7 +86,7 @@ const ADMIN_TOPBAR_NOTIFICATIONS_INITIAL: AdminNotifItem[] = [
   {
     id: "1",
     title: "SSL-сертификат истекает",
-    body: "Осталось 2 дня до окончания действия для api.eso.company.ru.",
+    body: "Осталось 2 дня до окончания действия для api.eso.company.ru — продлите в центре сертификатов.",
     time: "12 мин назад",
     read: false,
     icon: "alert",
@@ -88,21 +95,27 @@ const ADMIN_TOPBAR_NOTIFICATIONS_INITIAL: AdminNotifItem[] = [
   {
     id: "2",
     title: "Политика паролей",
-    body: "14 пользователей не меняли пароль более 90 дней.",
+    body: "14 учётных записей не меняли пароль более 90 дней — требуется рассылка или принудительная смена.",
+    time: "40 мин назад",
     read: false,
     icon: "shield",
-    to: "/admin",
+    to: "/admin/users",
   },
   {
     id: "3",
     title: "Резервное копирование",
     body: "Ночной бэкап завершён успешно (2.4 GB).",
     time: "Сегодня, 03:12",
-    read: false,
+    read: true,
     icon: "server",
     to: "/admin",
   },
 ];
+
+function buildAdminNotifications(): AdminNotifItem[] {
+  const reads = loadNotificationReads(SITE_NOTIF_READS_ADMIN);
+  return hydrateNotificationReads(ADMIN_TOPBAR_NOTIFICATIONS_INITIAL, reads);
+}
 
 function AdminNotifGlyph({ kind }: { kind: AdminNotifIcon }) {
   const c = { size: 14 as const, strokeWidth: brandIcon.sw };
@@ -115,7 +128,7 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
   const [search, setSearch] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState(() => [...ADMIN_TOPBAR_NOTIFICATIONS_INITIAL]);
+  const [notifications, setNotifications] = useState(() => buildAdminNotifications());
   const notifWrapRef = useRef<HTMLDivElement>(null);
   const profileWrapRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -134,12 +147,24 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
     return () => document.removeEventListener("mousedown", onDocDown);
   }, []);
 
+  useEffect(() => {
+    const sync = () => setNotifications(buildAdminNotifications());
+    sync();
+    window.addEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+    return () => window.removeEventListener(SITE_NOTIFICATIONS_CHANGED, sync);
+  }, []);
+
   const markRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setOneRead(SITE_NOTIF_READS_ADMIN, id, true);
+    setNotifications(buildAdminNotifications());
   };
 
   const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setAllRead(
+      SITE_NOTIF_READS_ADMIN,
+      ADMIN_TOPBAR_NOTIFICATIONS_INITIAL.map((n) => n.id),
+    );
+    setNotifications(buildAdminNotifications());
   };
 
   const runQuickAction = (action: (typeof quickActions)[number]["action"]) => {
@@ -271,7 +296,7 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
                     borderRadius: "50%",
                     background: "#e3000b",
                     fontSize: "10px",
-                    fontWeight: 800,
+                    fontWeight: 600,
                     color: "#ffffff",
                     display: "flex",
                     alignItems: "center",
@@ -316,7 +341,7 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
                   gap: "12px",
                 }}
               >
-                <span style={{ fontSize: "14px", fontWeight: 800, color: "#000000" }}>Уведомления</span>
+                <span style={{ fontSize: "14px", fontWeight: 600, color: "#000000" }}>Уведомления</span>
                 {unreadCount > 0 && (
                   <button
                     type="button"
@@ -327,7 +352,7 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
                       background: "transparent",
                       color: "#e3000b",
                       fontSize: "12px",
-                      fontWeight: 600,
+                      fontWeight: 500,
                       cursor: "pointer",
                       fontFamily: "inherit",
                     }}
@@ -376,7 +401,7 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
                       <AdminNotifGlyph kind={n.icon} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "13px", fontWeight: 700, color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 500, color: "#000000", lineHeight: 1.35 }}>{n.title}</div>
                       <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px", lineHeight: 1.45 }}>{n.body}</div>
                       <div style={{ fontSize: "10px", color: "#000000", marginTop: "6px", opacity: 0.75 }}>{n.time}</div>
                     </div>
@@ -449,11 +474,11 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
             }}
           >
             <div style={{ position: "relative" }}>
-              <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,#e3000b,#81d0f5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color: "#000000", boxShadow: "0 0 12px rgba(227,0,11,.35)" }}>ДС</div>
+              <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,#e3000b,#81d0f5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "500", color: "#000000", boxShadow: "0 0 12px rgba(227,0,11,.35)" }}>ДС</div>
               <div style={{ position: "absolute", bottom: "0", right: "0", width: "9px", height: "9px", borderRadius: "50%", background: "#81d0f5", border: "2px solid #000000", boxShadow: "0 0 6px rgba(129,208,245,.5)" }} />
             </div>
             <div style={{ textAlign: "left" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: "600", color: "#000000", lineHeight: 1.2 }}>Дмитрий Соколов</div>
+              <div style={{ fontSize: "12.5px", fontWeight: "500", color: "#000000", lineHeight: 1.2 }}>Дмитрий Соколов</div>
               <div style={{ fontSize: "10.5px", color: "#000000", lineHeight: 1.2 }}>Системный администратор</div>
             </div>
             <ChevronDown
@@ -509,7 +534,7 @@ export function AdminTopbar({ onAddUser }: AdminTopbarProps) {
                     cursor: "pointer",
                     fontFamily: "inherit",
                     fontSize: "13px",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     color: "#000000",
                     textAlign: "left",
                   }}

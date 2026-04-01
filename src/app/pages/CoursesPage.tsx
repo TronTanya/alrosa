@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import {
   Globe,
@@ -21,21 +21,25 @@ import {
 } from "../lib/trainingApplicationsStorage";
 import { AlrosaLogo, BrandLine } from "../components/AlrosaBrand";
 import { brandIcon } from "../lib/brandIcons";
+import {
+  readTeamWidePlanCourses,
+  TEAM_WIDE_COURSES_UPDATED,
+} from "../lib/teamWideCourseEnrollment";
 
-/** Демо-данные: подбор под Middle Software Engineer + цели развития 2026 (если API недоступен) */
+/** Демо-данные: подбор под инженера-программиста (Middle) + цели развития 2026 (если API недоступен) — только отечественные площадки */
 export const aiPicks = [
   {
     id: "1",
-    title: "System Design: масштабируемые системы",
-    provider: "Coursera · University of Alberta",
-    url: "https://www.coursera.org/learn/software-architecture",
+    title: "Проектирование высоконагруженных систем",
+    provider: "OTUS",
+    url: "https://otus.ru/lessons/razrabotka-vysokonagruzhennyh-sistem/",
     rating: 4.8,
-    reviews: "12k",
+    reviews: "2.1k",
     match: 96,
     duration: "8 недель",
-    tags: ["архитектура", "backend"],
+    tags: ["архитектура", "бэкенд"],
     reason:
-      "Курс University of Alberta по архитектуре ПО и UML — совпадает с целью по проектированию распределённых систем.",
+      "Программа OTUS по архитектуре распределённых систем на русском — совпадает с целью по проектированию нагрузки.",
   },
   {
     id: "2",
@@ -46,44 +50,44 @@ export const aiPicks = [
     reviews: "3.4k",
     match: 93,
     duration: "6 недель",
-    tags: ["frontend", "TypeScript"],
+    tags: ["фронтенд", "TypeScript"],
     reason:
       "Полный курс JS/TS на Stepik: теория, практика и типизация — близко к вашему стеку и отзывам сообщества.",
   },
   {
     id: "3",
-    title: "Машинное обучение для инженеров ПО",
-    provider: "Coursera · DeepLearning.AI / Stanford",
-    url: "https://www.coursera.org/learn/machine-learning",
+    title: "Машинное обучение для инженеров",
+    provider: "Яндекс Практикум",
+    url: "https://practicum.yandex.ru/data-scientist/",
     rating: 4.7,
-    reviews: "8k",
+    reviews: "5k",
     match: 88,
     duration: "12 недель",
     tags: ["ML", "Python"],
     reason:
-      "Специализация Andrew Ng по ML на Python: линейные модели и классификация — база для инженерных задач с данными.",
+      "Трек по анализу данных и ML на русском: практика на реальных кейсах, удобно для инженеров из РФ.",
   },
   {
     id: "4",
-    title: "Observability: метрики, логи, трассировки",
-    provider: "Udemy · Stephen Grider",
-    url: "https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/",
+    title: "DevOps и контейнеризация",
+    provider: "Нетология",
+    url: "https://netology.ru/programs/devops",
     rating: 4.6,
-    reviews: "21k",
+    reviews: "1.8k",
     match: 91,
     duration: "4 недели",
-    tags: ["DevOps", "SRE"],
+    tags: ["девопс", "SRE"],
     reason:
-      "Docker и Kubernetes в одном курсе: метрики, деплой и наблюдаемость в проде — близко к задачам SRE и DevOps.",
+      "Курс Нетологии по CI/CD и инфраструктуре на русском — близко к задачам SRE и корпоративным стандартам.",
   },
 ];
 
 /** Пройденные обучения — с рабочими ссылками на платформы */
 export const completedCourses = [
   {
-    title: "Корпоративная безопасность 2026",
-    provider: "Coursera · IBM",
-    url: "https://www.coursera.org/professional-certificates/ibm-cybersecurity-analyst",
+    title: "Информационная безопасность для разработчиков",
+    provider: "Skillbox",
+    url: "https://skillbox.ru/code/cybersecurity/",
     finishedAt: "2025-12-18",
   },
   {
@@ -100,15 +104,15 @@ export const assignedCourses = [
     title: "Основы лидерства в ИТ",
     progress: 65,
     status: "active" as const,
-    provider: "Coursera",
-    url: "https://www.coursera.org/learn/leading-teams",
+    provider: "Нетология",
+    url: "https://netology.ru/programs/management",
   },
   {
     title: "Английский B2 для IT",
     progress: 40,
     status: "active" as const,
-    provider: "Coursera",
-    url: "https://www.coursera.org/browse/language-learning/learning-english",
+    provider: "Skyeng",
+    url: "https://skyeng.ru/",
   },
   {
     title: "Алроса ИТ: внутренние процессы",
@@ -162,6 +166,7 @@ export function CoursesPage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [approvedIds, setApprovedIds] = useState<Set<string>>(() => loadApprovedIds());
   const [pendingApprovals, setPendingApprovals] = useState(() => readStoredTrainingApplications());
+  const [teamWidePlan, setTeamWidePlan] = useState(() => readTeamWidePlanCourses());
 
   useEffect(() => {
     const sync = () => setPendingApprovals(readStoredTrainingApplications());
@@ -172,6 +177,30 @@ export function CoursesPage() {
       window.removeEventListener("storage", sync);
     };
   }, []);
+
+  useEffect(() => {
+    const sync = () => setTeamWidePlan(readTeamWidePlanCourses());
+    window.addEventListener(TEAM_WIDE_COURSES_UPDATED, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(TEAM_WIDE_COURSES_UPDATED, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const assignedCoursesMerged = useMemo(() => {
+    const titles = new Set(assignedCourses.map((c) => c.title));
+    const extra = teamWidePlan
+      .filter((c) => !titles.has(c.title))
+      .map((c) => ({
+        title: c.title,
+        progress: c.progress,
+        status: c.status,
+        provider: c.provider,
+        url: c.url,
+      }));
+    return [...assignedCourses, ...extra];
+  }, [teamWidePlan]);
 
   const loadPicks = useCallback((isManualRefresh: boolean) => {
     abortRef.current?.abort();
@@ -253,7 +282,7 @@ export function CoursesPage() {
               <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
                 <Clock size={20} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} style={{ flexShrink: 0, marginTop: "2px" }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "13px", fontWeight: "800", color: "#000000", marginBottom: "6px" }}>Время из календаря</div>
+                  <div style={{ fontSize: "13px", fontWeight: "600", color: "#000000", marginBottom: "6px" }}>Время из календаря</div>
                   <p style={{ fontSize: "12px", color: "#000000", margin: 0, lineHeight: 1.55 }}>{slotHint}</p>
                   <button
                     type="button"
@@ -265,7 +294,7 @@ export function CoursesPage() {
                       border: "1px solid rgba(0,0,0,.12)",
                       background: "#ffffff",
                       fontSize: "11px",
-                      fontWeight: "600",
+                      fontWeight: "500",
                       cursor: "pointer",
                       fontFamily: "inherit",
                     }}
@@ -280,9 +309,10 @@ export function CoursesPage() {
             <div className="courses-hero__titles">
               <h1 className="landing-h1">Мои курсы</h1>
               <p className="landing-lead">
-                Искусственный интеллект (DeepSeek) учитывает и зарубежные, и отечественные открытые площадки (Stepik, Практикум,
-                Нетология, Skillbox, вузовские программы, Coursera/edX и др.) — рейтинги, отзывы, язык программы и актуальность —
-                и предлагает подборку под вашу роль и план развития. Рядом с курсом можно отправить заявку на согласование руководителю.
+                Искусственный интеллект (Алиса / YandexGPT) подбирает отечественные программы: не только популярные курсы на открытых платформах
+                (Stepik, Яндекс Практикум, Нетология, Skillbox и др.), но и курсы вузов и колледжей — государственных и коммерческих: дистанционное
+                и дополнительное образование, программы на openedu.ru и официальных сайтах учебных заведений. Учитываются рейтинги, отзывы, язык и
+                актуальность. Рядом с курсом можно отправить заявку на согласование руководителю.
               </p>
             </div>
           </div>
@@ -303,9 +333,9 @@ export function CoursesPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="courses-panel__title">Как работает анализ</div>
             <p className="courses-panel__text">
-              Модель обобщает сведения о курсах на российских и международных платформах (язык, формат, отзывы, длительность,
-              навыки), сопоставляет с профилем и целями развития и формирует список с упором минимум на часть отечественных программ. Подбор
-              обновляется при запросе и опирается на публичные знания о программах, а не на живой обход всего интернета.
+              Модель обобщает сведения о программах на российских платформах, в вузах и колледжах (государственных и коммерческих): язык, формат,
+              отзывы, длительность, навыки; сопоставляет с профилем и целями развития. Подбор включает и массовые онлайн-курсы, и академические
+              программы там, где это уместно; зарубежные MOOC не попадают в список. Обновление — по запросу, опора на публичные сведения о программах.
               Рекомендации — ориентир: согласование — за вами и руководителем.
             </p>
           </div>
@@ -327,7 +357,7 @@ export function CoursesPage() {
                 <div key={app.id} className="courses-list__row">
                   <Clock size={16} color={brandIcon.accentRed} strokeWidth={brandIcon.sw} style={{ flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: "180px" }}>
-                    <div style={{ fontSize: "13px", fontWeight: 700, color: "#000000", marginBottom: 4 }}>{app.title}</div>
+                    <div style={{ fontSize: "13px", fontWeight: 500, color: "#000000", marginBottom: 4 }}>{app.title}</div>
                     <div style={{ fontSize: "11px", color: "#000000" }}>
                       {app.provider} · подано {formatRuDateShort(app.submittedAt)}
                     </div>
@@ -370,14 +400,14 @@ export function CoursesPage() {
             <strong style={{ color: "#e3000b" }}>ИИ недоступен: </strong>
             {apiError}
             <div style={{ marginTop: 8, fontSize: 11, color: "#000000" }}>
-              Файл <code>.env</code> в корне проекта: <code>DEEPSEEK_API_KEY=sk-...</code> (без кавычек). Затем полностью
-              остановите и снова запустите <code>npm run dev</code>. Допустимо и <code>VITE_DEEPSEEK_API_KEY</code> — прокси подставит его тоже.
+              Файл <code>.env</code> в корне проекта: <code>YANDEX_CLOUD_API_KEY=AQVN...</code> (без кавычек). Затем полностью
+              остановите и снова запустите <code>npm run dev</code>. Допустимо и <code>VITE_YANDEX_CLOUD_API_KEY</code> — прокси подставит его тоже.
             </div>
           </div>
         ) : null}
         {!fromLiveAi && !loading && !apiError ? (
           <p className="courses-demo-hint">
-            Показан локальный демо-подбор. Укажите ключ DeepSeek в .env и перезапустите dev — список подтянется из модели.
+            Показан локальный демо-подбор (отечественные площадки). Укажите ключ Yandex Cloud в .env и перезапустите dev — список подтянется из модели.
           </p>
         ) : null}
 
@@ -401,7 +431,7 @@ export function CoursesPage() {
                       </span>
                     ))}
                   </div>
-                  <h2 style={{ fontSize: 16, fontWeight: 800, color: "#000000", margin: "0 0 6px", lineHeight: 1.3 }}>{c.title}</h2>
+                  <h2 style={{ fontSize: 16, fontWeight: 600, color: "#000000", margin: "0 0 6px", lineHeight: 1.3 }}>{c.title}</h2>
                   <div style={{ fontSize: 12, color: "#000000", marginBottom: 10 }}>{c.provider}</div>
                   <div className="courses-ai-meta">
                     <span className="courses-ai-meta__star">
@@ -457,7 +487,7 @@ export function CoursesPage() {
               <div key={row.title} className="courses-list__row">
                 <CheckCircle2 size={18} color={brandIcon.stroke} strokeWidth={brandIcon.sw} style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: "160px" }}>
-                  <div style={{ fontSize: "13px", fontWeight: 700, color: "#000000" }}>{row.title}</div>
+                  <div style={{ fontSize: "13px", fontWeight: 500, color: "#000000" }}>{row.title}</div>
                   <div style={{ fontSize: "11px", color: "#000000", marginTop: 3 }}>
                     {row.provider} · завершено {row.finishedAt}
                   </div>
@@ -473,7 +503,7 @@ export function CoursesPage() {
 
         <p className="courses-section-label">Уже в вашем плане</p>
         <div className="courses-list">
-          {assignedCourses.map((row) => {
+          {assignedCoursesMerged.map((row) => {
             const href = coursePageHref(row.url, row.title, row.provider);
             return (
               <div key={row.title} className="courses-list__row" style={{ padding: "10px 14px" }}>

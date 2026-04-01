@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build": "node --max-old-space-size=6144 ./node_modules/vite/bin/vite.js build",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "lint": "eslint .",
     "dev": "vite",
     "backend:nylas": "cd backend && python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000"
   },
@@ -70,9 +72,19 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
     "@tailwindcss/vite": "4.1.12",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "4.7.0",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
     "tailwindcss": "4.1.12",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.18.2",
     "vite": "6.3.5"
   },
   "peerDependencies": {

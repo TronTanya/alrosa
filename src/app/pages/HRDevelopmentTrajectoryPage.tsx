@@ -78,7 +78,7 @@ export function HRDevelopmentTrajectoryPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -170,7 +170,7 @@ export function HRDevelopmentTrajectoryPage() {
                           textAlign: "left",
                           padding: "12px 16px",
                           fontSize: "10px",
-                          fontWeight: "700",
+                          fontWeight: "500",
                           color: "#000000",
                           letterSpacing: "0.06em",
                           textTransform: "uppercase",
@@ -194,12 +194,12 @@ export function HRDevelopmentTrajectoryPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 16px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000" }}>{r.employeeName}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000" }}>{r.employeeName}</span>
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.department}</td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000" }}>{r.role}</td>
                       <td style={{ padding: "14px 16px" }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "600", color: "#000000" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "500", color: "#000000" }}>
                           <Route size={14} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
                           {r.trackTitle}
                         </span>
@@ -211,7 +211,7 @@ export function HRDevelopmentTrajectoryPage() {
                             padding: "3px 9px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             color: "#000000",
                             background: st.bg,
                             border: `1px solid ${st.border}`,
@@ -220,13 +220,13 @@ export function HRDevelopmentTrajectoryPage() {
                           {r.status}
                         </span>
                       </td>
-                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "700", color: "#000000", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "500", color: "#000000", whiteSpace: "nowrap" }}>
                         {r.progressPct}%
                       </td>
                       <td style={{ padding: "14px 16px", fontSize: "12px", color: "#000000", maxWidth: "220px", lineHeight: 1.45 }}>
                         {r.nextStep}
                       </td>
-                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "600", color: "#000000", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "14px 16px", fontSize: "12px", fontWeight: "500", color: "#000000", whiteSpace: "nowrap" }}>
                         {r.targetQuarter}
                       </td>
                     </motion.tr>

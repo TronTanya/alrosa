@@ -1,4 +1,6 @@
-/** Экспорт таблиц HR: CSV (Excel) и печать / PDF через диалог браузера */
+﻿/** Экспорт таблиц HR: CSV (Excel) и печать / PDF через диалог браузера */
+
+import { openPrintableReport } from "./pdfExport";
 
 function escapeHtml(s: string): string {
   return s
@@ -40,35 +42,11 @@ export function openPrintableDocument(options: {
 }): void {
   const { title, subtitle, headers, rows } = options;
   const headHtml = headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("");
-  const bodyHtml = rows
+  const tbodyHtml = rows
     .map((r) => `<tr>${r.map((c) => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`)
     .join("");
-  const html = `<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8"/>
-  <title>${escapeHtml(title)}</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: 24px; color: #111; }
-    h1 { font-size: 18px; margin: 0 0 8px; }
-    .sub { font-size: 12px; color: #444; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; font-size: 11px; }
-    th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; }
-    th { background: #f3f4f6; font-weight: 700; }
-    @media print { body { padding: 12px; } }
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(title)}</h1>
-  ${subtitle ? `<p class="sub">${escapeHtml(subtitle)}</p>` : ""}
-  <table><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>
-  <script>window.onload = function() { window.print(); };</script>
-</body>
-</html>`;
-  const w = window.open("", "_blank", "noopener,noreferrer");
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  const bodyInner = `<h1>${escapeHtml(title)}</h1>
+${subtitle ? `<p class="meta">${escapeHtml(subtitle)}</p>` : ""}
+<table><thead><tr>${headHtml}</tr></thead><tbody>${tbodyHtml}</tbody></table>`;
+  openPrintableReport(title, bodyInner);
 }

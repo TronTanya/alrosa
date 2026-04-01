@@ -1,11 +1,32 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AdminKPICards } from "../components/admin/AdminKPICards";
 import { SystemOverviewChart } from "../components/admin/SystemOverviewChart";
 import { AccessHeatmap } from "../components/admin/AccessHeatmap";
 import { AdminAIPanel } from "../components/admin/AdminAIPanel";
 import { SystemActionsLog } from "../components/admin/SystemActionsLog";
+import { ESO_VERSION, ADMIN_USERS_TOTAL, ADMIN_COURSES_ACTIVE, ADMIN_UPTIME } from "../data/adminDashboardConstants";
+import { formatMskLine, nextBackupLabel } from "../lib/adminMskDates";
 
 export function AdminDashboardHome() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const subtitleLine = useMemo(
+    () =>
+      `ЕСО v${ESO_VERSION} · ${ADMIN_USERS_TOTAL} пользователей · ${ADMIN_COURSES_ACTIVE} курсов · Uptime ${ADMIN_UPTIME} · ${formatMskLine(now)}`,
+    [now],
+  );
+
+  const backupLine = useMemo(() => nextBackupLabel(now), [now]);
+  const lastDeploy = useMemo(() => {
+    const t = new Date(now);
+    t.setDate(t.getDate() - 6);
+    return t.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }, [now]);
+
   return (
     <div className="employee-tab-ornament">
       <div className="employee-tab-ornament__inner">
@@ -23,7 +44,7 @@ export function AdminDashboardHome() {
             <h1
               style={{
                 fontSize: "21px",
-                fontWeight: "800",
+                fontWeight: "600",
                 color: "#000000",
                 letterSpacing: "-0.4px",
                 lineHeight: 1,
@@ -42,7 +63,7 @@ export function AdminDashboardHome() {
                 background: "linear-gradient(135deg,rgba(227,0,11,.2),rgba(129,208,245,.12))",
                 border: "1px solid rgba(227,0,11,.32)",
                 fontSize: "11px",
-                fontWeight: "600",
+                fontWeight: "500",
                 color: "#e3000b",
               }}
             >
@@ -68,7 +89,7 @@ export function AdminDashboardHome() {
                 background: "rgba(129,208,245,.1)",
                 border: "1px solid rgba(129,208,245,.25)",
                 fontSize: "11px",
-                fontWeight: "600",
+                fontWeight: "500",
                 color: "#000000",
               }}
             >
@@ -85,9 +106,7 @@ export function AdminDashboardHome() {
               Все системы в норме
             </div>
           </div>
-          <p style={{ fontSize: "13px", color: "#000000", margin: 0, marginLeft: "14px" }}>
-            ЕСО v4.2.1 · 312 пользователей · 87 курсов · Uptime 99.9% · 30 марта 2026 · 10:42 MSK
-          </p>
+          <p style={{ fontSize: "13px", color: "#000000", margin: 0, marginLeft: "14px" }}>{subtitleLine}</p>
         </div>
 
         <div style={{ marginBottom: "20px" }}>
@@ -120,19 +139,19 @@ export function AdminDashboardHome() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             {[
-              { label: "Следующее резервное копирование", value: "02:00 · Сегодня ночью", color: "#000000" },
-              { label: "Последнее обновление системы", value: "25.03.2026 · v4.2.0", color: "#000000" },
-              { label: "Лицензия GigaChat", value: "Активна до 31.12.2026", color: "#e3000b" },
+              { label: "Следующее резервное копирование", value: backupLine, color: "#000000" },
+              { label: "Последнее обновление системы", value: `${lastDeploy} · v${ESO_VERSION}`, color: "#000000" },
+              { label: "Лицензия Яндекс Алиса", value: "Активна до 31.12.2026", color: "#e3000b" },
             ].map(({ label, value, color }) => (
               <div key={label} style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                 <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: color, flexShrink: 0 }} />
                 <span style={{ fontSize: "11px", color: "#000000" }}>{label}:</span>
-                <span style={{ fontSize: "11.5px", fontWeight: "600", color }}>{value}</span>
+                <span style={{ fontSize: "11.5px", fontWeight: "500", color }}>{value}</span>
               </div>
             ))}
           </div>
           <div style={{ fontSize: "10.5px", color: "#000000" }}>
-            Алроса ИТ · Единая среда обучения · Admin Panel v4.2.1
+            Алроса ИТ · Единая среда обучения · Admin Panel v{ESO_VERSION}
           </div>
         </div>
       </div>

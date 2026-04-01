@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
+import { loadAdminNotificationRules, setAdminRuleStatus as persistAdminRuleStatus } from "../lib/adminNotificationRulesStorage";
 import { motion } from "motion/react";
 import { Bell, Search } from "lucide-react";
 import {
   ADMIN_NOTIFICATION_RULES_TOTAL,
-  adminNotificationRulesSeed,
   type AdminNotificationChannel,
   type AdminNotificationRuleRow,
   type AdminNotificationRuleStatus,
@@ -50,10 +50,11 @@ export function AdminNotificationsPage() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<AdminNotificationRuleStatus | "all">("all");
   const [channel, setChannel] = useState<AdminNotificationChannel | "all">("all");
-  const [rows, setRows] = useState<AdminNotificationRuleRow[]>(() => adminNotificationRulesSeed.map((r) => ({ ...r })));
+  const [rows, setRows] = useState<AdminNotificationRuleRow[]>(() => loadAdminNotificationRules());
 
   const setRuleStatus = (id: string, next: AdminNotificationRuleStatus) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: next } : r)));
+    persistAdminRuleStatus(id, next);
+    setRows(loadAdminNotificationRules());
   };
 
   const filtered = useMemo(() => {
@@ -95,7 +96,7 @@ export function AdminNotificationsPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -111,7 +112,7 @@ export function AdminNotificationsPage() {
                     background: "rgba(129,208,245,0.14)",
                     border: "1px solid rgba(129,208,245,0.35)",
                     fontSize: "11px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     color: "#000000",
                   }}
                 >
@@ -125,7 +126,7 @@ export function AdminNotificationsPage() {
                       background: "rgba(227,0,11,0.1)",
                       border: "1px solid rgba(227,0,11,0.25)",
                       fontSize: "11px",
-                      fontWeight: "700",
+                      fontWeight: "500",
                       color: "#e3000b",
                     }}
                   >
@@ -134,7 +135,7 @@ export function AdminNotificationsPage() {
                 )}
               </div>
               <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "760px" }}>
-                Правила рассылок и push по событиям ЕСО. Демо — статус сценария меняется только в браузере.
+                Правила рассылок и push по событиям ЕСО. Статусы сценариев сохраняются в браузере (localStorage).
               </p>
             </div>
           </div>
@@ -240,7 +241,7 @@ export function AdminNotificationsPage() {
                         textAlign: "left",
                         padding: "12px 14px",
                         fontSize: "10px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
@@ -264,7 +265,7 @@ export function AdminNotificationsPage() {
                       style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <td style={{ padding: "14px 14px", maxWidth: "280px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", lineHeight: 1.35 }}>{r.name}</span>
                       </td>
                       <td style={{ padding: "14px 14px" }}>
                         <span
@@ -273,7 +274,7 @@ export function AdminNotificationsPage() {
                             padding: "4px 10px",
                             borderRadius: "20px",
                             fontSize: "11px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             background: ch.bg,
                             border: `1px solid ${ch.border}`,
                             color: "#000000",
@@ -299,7 +300,7 @@ export function AdminNotificationsPage() {
                             background: st.bg,
                             color: st.color,
                             fontSize: "12px",
-                            fontWeight: "600",
+                            fontWeight: "500",
                             fontFamily: "var(--font-sans)",
                             cursor: "pointer",
                             outline: "none",

@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { User, Users, Shield, Briefcase, ChevronUp, Sparkles } from "lucide-react";
 import { ROUTE_PATHS } from "./routePaths";
+import { HR_LD_SECTION_LABEL, L_D_DIRECTOR_TITLE } from "./lib/hrLdLabels";
+import type { BrandLucideIcon } from "./lib/brandIcons";
 
 interface RoleItem {
   path: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: BrandLucideIcon;
   label: string;
   sublabel: string;
   shortLabel: string;
@@ -44,8 +46,8 @@ const roles: RoleItem[] = [
   {
     path: ROUTE_PATHS.hr,
     icon: Users,
-    label: "HR / L&D Дашборд",
-    sublabel: "Анна Смирнова · L&D Директор",
+    label: `Дашборд — ${HR_LD_SECTION_LABEL}`,
+    sublabel: `Анна Смирнова · ${L_D_DIRECTOR_TITLE}`,
     shortLabel: "HR",
     initials: "АС",
     accent: "#e3000b",
@@ -185,7 +187,7 @@ export function RoleDock() {
                       width: "36px", height: "36px", borderRadius: "50%",
                       background: role.avatarGrad,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "11px", fontWeight: "800", color: "#000000",
+                      fontSize: "11px", fontWeight: "600", color: "#000000",
                       boxShadow: isActive ? `0 0 12px ${role.glow}` : "none",
                       transition: "box-shadow .18s",
                     }}>
@@ -224,7 +226,7 @@ export function RoleDock() {
 
                   {isActive && (
                     <div style={{
-                      fontSize: "10px", fontWeight: "700", padding: "2px 8px",
+                      fontSize: "10px", fontWeight: "500", padding: "2px 8px",
                       borderRadius: "20px", background: `${role.accent}22`,
                       border: `1px solid ${role.accent}38`, color: role.accent,
                       flexShrink: 0,
@@ -263,7 +265,7 @@ export function RoleDock() {
               width: "30px", height: "30px", borderRadius: "50%",
               background: active.avatarGrad,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "10px", fontWeight: "800", color: "#000000",
+              fontSize: "10px", fontWeight: "600", color: "#000000",
               boxShadow: `0 0 10px ${active.glow}`,
               transition: "box-shadow .22s",
             }}>
@@ -316,7 +318,7 @@ export function RoleDock() {
                 >
                   <r.icon size={11} style={{ color: isAct ? r.accent : "#000000", flexShrink: 0 }} />
                   {isAct && (
-                    <span style={{ fontSize: "11.5px", fontWeight: "700", color: r.accent, whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: "11.5px", fontWeight: "500", color: r.accent, whiteSpace: "nowrap" }}>
                       {r.shortLabel}
                     </span>
                   )}

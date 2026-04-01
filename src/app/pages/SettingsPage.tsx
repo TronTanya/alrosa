@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { logout } from "../auth/session";
+import { useLocale } from "../contexts/LocaleContext";
+import type { AppLocale } from "../i18n/localeStorage";
 import { Settings, Bell, Globe, Shield, LogOut, ChevronDown } from "lucide-react";
 
 function Toggle({
@@ -51,14 +53,21 @@ function Toggle({
   );
 }
 
+const LANG_OPTIONS: { id: AppLocale; labelKey: string }[] = [
+  { id: "ru", labelKey: "settings.langRu" },
+  { id: "en", labelKey: "settings.langEn" },
+];
+
 export function SettingsPage() {
   const navigate = useNavigate();
+  const { locale, setLocale, t } = useLocale();
   const [notifyCourses, setNotifyCourses] = useState(true);
   const [notifyIpr, setNotifyIpr] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState(false);
   const [aiHistory, setAiHistory] = useState(true);
   const [langOpen, setLangOpen] = useState(false);
-  const [lang, setLang] = useState("Русский");
+
+  const currentLangLabel = locale === "en" ? t("settings.langEn") : t("settings.langRu");
 
   return (
     <>
@@ -88,17 +97,17 @@ export function SettingsPage() {
             <h1
               style={{
                 fontSize: "21px",
-                fontWeight: "800",
+                fontWeight: "600",
                 color: "#000000",
                 letterSpacing: "-0.3px",
                 margin: 0,
                 lineHeight: 1.2,
               }}
             >
-              Настройки
+              {t("settings.title")}
             </h1>
             <p style={{ fontSize: "13px", color: "rgba(156,163,175,.75)", margin: "6px 0 0", lineHeight: 1.5 }}>
-              Уведомления, язык и параметры приватности портала обучения.
+              {t("settings.subtitle")}
             </p>
           </div>
         </div>
@@ -113,8 +122,8 @@ export function SettingsPage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
           <Bell size={16} style={{ color: "#000000" }} />
-          <h2 style={{ fontSize: "13px", fontWeight: "800", color: "#000000", margin: 0, letterSpacing: "0.06em" }}>
-            УВЕДОМЛЕНИЯ
+          <h2 style={{ fontSize: "13px", fontWeight: "600", color: "#000000", margin: 0, letterSpacing: "0.06em" }}>
+            {t("settings.notify")}
           </h2>
         </div>
         <div
@@ -128,22 +137,22 @@ export function SettingsPage() {
           {[
             {
               id: "n1",
-              label: "Напоминания о курсах и дедлайнах",
-              sub: "В колокольчике в шапке портала",
+              label: t("settings.n1"),
+              sub: t("settings.n1sub"),
               value: notifyCourses,
               set: setNotifyCourses,
             },
             {
               id: "n2",
-              label: "События плана развития и согласований",
-              sub: "Когда меняется статус заявки",
+              label: t("settings.n2"),
+              sub: t("settings.n2sub"),
               value: notifyIpr,
               set: setNotifyIpr,
             },
             {
               id: "n3",
-              label: "Дублировать на корпоративную почту",
-              sub: "Сводка раз в неделю",
+              label: t("settings.n3"),
+              sub: t("settings.n3sub"),
               value: notifyEmail,
               set: setNotifyEmail,
             },
@@ -162,7 +171,7 @@ export function SettingsPage() {
               }}
             >
               <div>
-                <div style={{ fontSize: "14px", fontWeight: "600", color: "#000000" }}>{row.label}</div>
+                <div style={{ fontSize: "14px", fontWeight: "500", color: "#000000" }}>{row.label}</div>
                 <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px" }}>{row.sub}</div>
               </div>
               <Toggle id={row.id} on={row.value} onChange={row.set} />
@@ -179,14 +188,16 @@ export function SettingsPage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
           <Globe size={16} style={{ color: "#000000" }} />
-          <h2 style={{ fontSize: "13px", fontWeight: "800", color: "#000000", margin: 0, letterSpacing: "0.06em" }}>
-            ЯЗЫК
+          <h2 style={{ fontSize: "13px", fontWeight: "600", color: "#000000", margin: 0, letterSpacing: "0.06em" }}>
+            {t("settings.lang")}
           </h2>
         </div>
         <div style={{ position: "relative", maxWidth: "320px" }}>
           <button
             type="button"
             onClick={() => setLangOpen((o) => !o)}
+            aria-expanded={langOpen}
+            aria-haspopup="listbox"
             style={{
               width: "100%",
               display: "flex",
@@ -198,12 +209,12 @@ export function SettingsPage() {
               background: "rgba(129,208,245,.04)",
               color: "#000000",
               fontSize: "14px",
-              fontWeight: "600",
+              fontWeight: "500",
               cursor: "pointer",
               fontFamily: "inherit",
             }}
           >
-            {lang}
+            {currentLangLabel}
             <ChevronDown
               size={18}
               style={{
@@ -215,43 +226,59 @@ export function SettingsPage() {
           </button>
           {langOpen && (
             <div
+              role="listbox"
               style={{
                 position: "absolute",
                 top: "calc(100% + 6px)",
                 left: 0,
                 right: 0,
                 borderRadius: "12px",
-                border: "1px solid rgba(129,208,245,.1)",
-                background: "rgba(10,12,28,.98)",
-                boxShadow: "0 16px 48px rgba(0,0,0,.5)",
+                border: "1px solid rgba(0,0,0,.1)",
+                background: "#ffffff",
+                boxShadow: "0 12px 32px rgba(0,0,0,.1), 0 0 0 1px rgba(129,208,245,.15)",
                 zIndex: 10,
                 overflow: "hidden",
               }}
             >
-              {["Русский", "English"].map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => {
-                    setLang(l);
-                    setLangOpen(false);
-                  }}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    padding: "12px 16px",
-                    border: "none",
-                    background: l === lang ? "rgba(0,196,160,.12)" : "transparent",
-                    color: "#000000",
-                    fontSize: "13px",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {l}
-                </button>
-              ))}
+              {LANG_OPTIONS.map((opt) => {
+                const label = t(opt.labelKey);
+                const selected = locale === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    onClick={() => {
+                      setLocale(opt.id);
+                      setLangOpen(false);
+                    }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "12px 16px",
+                      border: "none",
+                      background: selected ? "rgba(129,208,245,.18)" : "#ffffff",
+                      color: "#000000",
+                      fontSize: "13px",
+                      fontWeight: selected ? "600" : "500",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!selected) (e.currentTarget as HTMLButtonElement).style.background = "rgba(129,208,245,.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background = selected
+                        ? "rgba(129,208,245,.18)"
+                        : "#ffffff";
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -265,8 +292,8 @@ export function SettingsPage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
           <Shield size={16} style={{ color: "#000000" }} />
-          <h2 style={{ fontSize: "13px", fontWeight: "800", color: "#000000", margin: 0, letterSpacing: "0.06em" }}>
-            ИИ И ДАННЫЕ
+          <h2 style={{ fontSize: "13px", fontWeight: "600", color: "#000000", margin: 0, letterSpacing: "0.06em" }}>
+            {t("settings.ai")}
           </h2>
         </div>
         <div
@@ -282,10 +309,8 @@ export function SettingsPage() {
           }}
         >
           <div>
-            <div style={{ fontSize: "14px", fontWeight: "600", color: "#000000" }}>Сохранять историю чата с ИИ-наставником</div>
-            <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px" }}>
-              Нужно для персональных подсказок. Можно отключить — история не будет использоваться.
-            </div>
+            <div style={{ fontSize: "14px", fontWeight: "500", color: "#000000" }}>{t("settings.aiTitle")}</div>
+            <div style={{ fontSize: "12px", color: "#000000", marginTop: "4px" }}>{t("settings.aiSub")}</div>
           </div>
           <Toggle id="ai-hist" on={aiHistory} onChange={setAiHistory} />
         </div>
@@ -308,16 +333,16 @@ export function SettingsPage() {
             background: "rgba(255,80,80,.08)",
             color: "#ff8a8a",
             fontSize: "13px",
-            fontWeight: "700",
+            fontWeight: "500",
             cursor: "pointer",
             fontFamily: "inherit",
           }}
         >
           <LogOut size={18} />
-          Выйти из портала
+          {t("settings.logout")}
         </button>
         <p style={{ fontSize: "11px", color: "#000000", marginTop: "12px", maxWidth: "420px", lineHeight: 1.5 }}>
-          Выход завершит сессию на этом устройстве. Корпоративный SSO может потребовать повторный вход.
+          {t("settings.logoutHint")}
         </p>
       </motion.div>
     </>

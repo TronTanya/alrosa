@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { HelpCircle, Mail, MessageCircle, Phone, ChevronDown, BookOpen } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
+import { HR_LD_SECTION_LABEL, L_D_GLOSS, HR_GLOSS } from "../lib/hrLdLabels";
 
 const faqHr = [
   {
@@ -14,11 +15,11 @@ const faqHr = [
     a: "Создайте заявку на hr-learning@company.ru с приложением списка (ФИО, подразделение, e-mail) и ID программы в ЕСО.",
   },
   {
-    q: "Ошибка в дашборде HR или не обновляются KPI",
+    q: "Ошибка в дашборде HR или не обновляются показатели",
     a: "Опишите ситуацию в канале #l-and-d-tech или на eso-support@company.ru с указанием времени и скриншота.",
   },
   {
-    q: "Доступ к разделу для нового куратора L&D",
+    q: `Доступ к разделу для нового куратора ${L_D_GLOSS}`,
     a: "Заявка через Service Desk (роль «Куратор ЕСО / HR») или согласование с владельцем домена Алроса ИТ.",
   },
 ];
@@ -26,7 +27,7 @@ const faqHr = [
 const contacts = [
   {
     icon: Mail,
-    title: "L&D и аналитика",
+    title: `${L_D_GLOSS} и аналитика`,
     value: "hr-learning@company.ru",
     href: "mailto:hr-learning@company.ru",
     sub: "Программы, отчёты, бюджет",
@@ -123,9 +124,9 @@ export function HRSupportPage() {
                   >
                     <CIcon size={17} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
                   </div>
-                  <span style={{ fontSize: "12px", fontWeight: "700", color: "#000000" }}>{c.title}</span>
+                  <span style={{ fontSize: "12px", fontWeight: "500", color: "#000000" }}>{c.title}</span>
                 </div>
-                <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", marginBottom: "4px", wordBreak: "break-word" }}>
+                <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", marginBottom: "4px", wordBreak: "break-word" }}>
                   {c.value}
                 </div>
                 <div style={{ fontSize: "11px", color: "#000000", opacity: 0.75 }}>{c.sub}</div>
@@ -165,17 +166,16 @@ export function HRSupportPage() {
         <div className="glass-card" style={{ padding: "18px 20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
             <BookOpen size={16} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
-            <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000" }}>База знаний HR</span>
+            <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000" }}>База знаний {HR_GLOSS}</span>
           </div>
           <p style={{ fontSize: "12px", color: "#000000", margin: 0, lineHeight: 1.55, opacity: 0.9 }}>
-            Инструкции по отчётам, ролям и интеграциям — во внутреннем Confluence (раздел «ЕСО · HR / L&D»). При отсутствии
-            доступа обратитесь в Service Desk.
+            {`Инструкции по отчётам, ролям и интеграциям — во внутреннем Confluence (раздел «ЕСО · ${HR_LD_SECTION_LABEL}»). При отсутствии доступа обратитесь в Service Desk.`}
           </p>
         </div>
 
         <div style={{ marginBottom: "10px" }}>
-          <div style={{ fontSize: "12px", fontWeight: "700", color: "#000000", marginBottom: "10px", letterSpacing: "0.04em" }}>
-            Частые вопросы (HR)
+          <div style={{ fontSize: "12px", fontWeight: "500", color: "#000000", marginBottom: "10px", letterSpacing: "0.04em" }}>
+            Частые вопросы ({HR_GLOSS})
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {faqHr.map((item, i) => {
@@ -206,7 +206,7 @@ export function HRSupportPage() {
                       textAlign: "left",
                     }}
                   >
-                    <span style={{ fontSize: "13px", fontWeight: "700", color: "#000000" }}>{item.q}</span>
+                    <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000" }}>{item.q}</span>
                     <ChevronDown
                       size={18}
                       style={{
@@ -249,7 +249,7 @@ export function HRSupportPage() {
 
         <p style={{ fontSize: "11px", color: "#000000", margin: 0, opacity: 0.7 }}>
           Поддержка для сотрудников (личный кабинет):{" "}
-          <Link to="/support" style={{ color: "#000000", fontWeight: 700, textDecoration: "underline" }}>
+          <Link to="/support" style={{ color: "#000000", fontWeight: 500, textDecoration: "underline" }}>
             Перейти в раздел «Поддержка»
           </Link>
         </p>

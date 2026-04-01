@@ -36,7 +36,7 @@ const applications: {
   {
     id: "3",
     title: "Тренинг по презентациям для ИТ",
-    type: "Soft Skills",
+    type: "Гибкие навыки",
     date: "05.01.2026",
     status: "Завершено",
   },
@@ -70,9 +70,10 @@ export function IdpApplicationsPage() {
   }, []);
 
   const mergedApplications = useMemo(() => {
+    void storedTick;
     const storedRows = readStoredTrainingApplications().map((s) => ({
       id: `stored-${s.id}`,
-      title: `Курс «${s.title}»`,
+      title: s.listTitle?.trim() ? s.listTitle : `Курс «${s.title}»`,
       type: s.typeLabel,
       date: formatRuDateShort(s.submittedAt),
       status: "На согласовании" as AppStatus,
@@ -101,7 +102,7 @@ export function IdpApplicationsPage() {
             <h1
               style={{
                 fontSize: "22px",
-                fontWeight: "700",
+                fontWeight: "500",
                 color: "#000000",
                 letterSpacing: "-0.03em",
                 margin: 0,
@@ -141,12 +142,12 @@ export function IdpApplicationsPage() {
             style={{ flexShrink: 0, marginTop: "1px" }}
           />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: "13px", fontWeight: "700", color: "#000000", marginBottom: "4px" }}>
-              Курс отправлен на согласование
+            <div style={{ fontSize: "13px", fontWeight: "500", color: "#000000", marginBottom: "4px" }}>
+              Заявка отправлена на согласование
             </div>
             <div style={{ fontSize: "12px", color: "#000000", lineHeight: 1.5 }}>
-              «{pendingApproval.title}» ({pendingApproval.provider}) — заявка добавлена в список ниже и в очередь HR (в этом
-              демо данные хранятся в браузере).
+              «{pendingApproval.title}» ({pendingApproval.provider}) — заявка добавлена в список ниже и в очередь HR (кадры). В
+              этом демо данные хранятся в браузере.
             </div>
           </div>
         </motion.div>
@@ -171,7 +172,7 @@ export function IdpApplicationsPage() {
                 gap: "12px",
                 padding: "14px 18px",
                 fontSize: "11px",
-                fontWeight: "700",
+                fontWeight: "500",
                 color: "#000000",
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
@@ -221,14 +222,14 @@ export function IdpApplicationsPage() {
                   >
                     <FileText size={17} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
                   </div>
-                  <span style={{ fontSize: "13px", fontWeight: "600", color: "#000000", fontFamily: "var(--font-sans)", lineHeight: 1.35 }}>
+                  <span style={{ fontSize: "13px", fontWeight: "500", color: "#000000", fontFamily: "var(--font-sans)", lineHeight: 1.35 }}>
                     {a.title}
                   </span>
                   {a.highlight && (
                     <span
                       style={{
                         fontSize: "9px",
-                        fontWeight: "800",
+                        fontWeight: "600",
                         letterSpacing: "0.06em",
                         color: "#ffffff",
                         background: "#e3000b",
@@ -238,16 +239,16 @@ export function IdpApplicationsPage() {
                         fontFamily: "var(--font-sans)",
                       }}
                     >
-                      NEW
+                      НОВОЕ
                     </span>
                   )}
                 </div>
                 <span style={{ fontSize: "12px", fontWeight: "500", color: "#000000", fontFamily: "var(--font-sans)" }}>{a.type}</span>
-                <span style={{ fontSize: "12px", fontWeight: "600", color: "#000000", fontFamily: "var(--font-sans)", fontVariantNumeric: "tabular-nums" }}>{a.date}</span>
+                <span style={{ fontSize: "12px", fontWeight: "500", color: "#000000", fontFamily: "var(--font-sans)", fontVariantNumeric: "tabular-nums" }}>{a.date}</span>
                 <span
                   style={{
                     fontSize: "11px",
-                    fontWeight: "700",
+                    fontWeight: "500",
                     padding: "6px 12px",
                     borderRadius: "8px",
                     background: statusStyle[a.status].bg,
@@ -266,7 +267,7 @@ export function IdpApplicationsPage() {
           </div>
           <p style={{ fontSize: "12px", color: "#000000", marginTop: "14px", lineHeight: 1.55, fontFamily: "var(--font-sans)", maxWidth: "640px" }}>
             {pendingApprovalCount > 0
-              ? `Напоминание: ${pendingApprovalCount} ${pendingApprovalCount === 1 ? "заявка ожидает" : "заявок ожидают"} согласования — отмечены в списке (NEW).`
+              ? `Напоминание: ${pendingApprovalCount} ${pendingApprovalCount === 1 ? "заявка ожидает" : "заявок ожидают"} согласования — отмечены в списке (НОВОЕ).`
               : "Все заявки в работе или завершены."}
           </p>
         </motion.div>

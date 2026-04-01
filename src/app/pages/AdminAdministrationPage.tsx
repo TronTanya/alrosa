@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import {
   Shield,
@@ -11,65 +12,111 @@ import {
   Wrench,
 } from "lucide-react";
 import { brandIcon } from "../lib/brandIcons";
+import { showAdminToast } from "../lib/adminToast";
+import { ESO_VERSION } from "../data/adminDashboardConstants";
+import { demoSslDaysLeft, formatMskLine, maintenanceWindowLine } from "../lib/adminMskDates";
 
-type Task = { id: string; title: string; detail: string; done: boolean; urgent?: boolean };
+type Task = {
+  id: string;
+  title: string;
+  detail: string;
+  done: boolean;
+  urgent?: boolean;
+  /** Куда ведёт кнопка «Открыть раздел» */
+  openTo: string;
+  openLabel: string;
+};
 
 const INITIAL_TASKS: Task[] = [
   {
     id: "1",
     title: "Продлить SSL api.eso.company.ru",
-    detail: "Истекает через 2 дня · Let's Encrypt / корпоративный УЦ",
+    detail: "",
     done: false,
     urgent: true,
+    openTo: "/admin/notifications",
+    openLabel: "Уведомления",
   },
   {
     id: "2",
     title: "Пересмотр политики паролей (90 дней)",
     detail: "14 учётных записей вне политики · рассылка напоминаний запланирована",
     done: false,
+    openTo: "/admin/access",
+    openLabel: "Права доступа",
   },
   {
     id: "3",
-    title: "Ночное обновление каталога курсов v4.2.1",
-    detail: "Окно 02:00–02:30 МСК · откат подготовлен",
+    title: `Ночное обновление каталога курсов v${ESO_VERSION}`,
+    detail: "",
     done: true,
+    openTo: "/admin/courses",
+    openLabel: "Курсы",
   },
 ];
 
-function notify(msg: string) {
-  const el = document.createElement("div");
-  el.textContent = msg;
-  Object.assign(el.style, {
-    position: "fixed",
-    bottom: "80px",
-    right: "24px",
-    zIndex: "9999",
-    background: "rgba(0,0,0,0.97)",
-    border: "1px solid rgba(129,208,245,0.35)",
-    color: "#ffffff",
-    borderRadius: "12px",
-    padding: "12px 18px",
-    fontSize: "13px",
-    fontFamily: "var(--font-sans)",
-    fontWeight: "600",
-    maxWidth: "360px",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-  });
-  document.body.appendChild(el);
-  setTimeout(() => {
-    el.style.opacity = "0";
-    setTimeout(() => el.remove(), 300);
-  }, 2400);
-}
-
 export function AdminAdministrationPage() {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const toggle = (id: string) => {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
   };
 
   const pending = tasks.filter((t) => !t.done).length;
+
+  const taskDetail = (t: Task): string => {
+    if (t.id === "1") {
+      const d = demoSslDaysLeft(now);
+      const dw = d === 1 ? "день" : d >= 2 && d <= 4 ? "дня" : "дней";
+      return `Истекает через ${d} ${dw} · Let's Encrypt / корпоративный УЦ`;
+    }
+    if (t.id === "3") {
+      return `Окно ${maintenanceWindowLine(now)} · откат подготовлен`;
+    }
+    return t.detail;
+  };
+
+  const infraCards = useMemo(
+    () =>
+      [
+        {
+          title: "Окно обслуживания",
+          text: `Ближайшее: ${maintenanceWindowLine(now)} · каталог курсов и индекс поиска · ЕСО v${ESO_VERSION}`,
+          icon: CalendarClock,
+          action: "Расписание",
+          to: "/admin/configuration",
+        },
+        {
+          title: "Окружения",
+          text: `Production v${ESO_VERSION} · Staging v${ESO_VERSION}-rc · DR-сайт синхронизирован`,
+          icon: Server,
+          action: "Сравнить",
+          to: "/admin/servers",
+        },
+        {
+          title: "Доступ и секреты",
+          text: "Vault: 12 активных секретов · ротация API-ключей Яндекс Алиса по расписанию",
+          icon: KeyRound,
+          action: "Матрица доступа",
+          to: "/admin/access",
+        },
+        {
+          title: "Перезапуск сервисов",
+          text: "Без простоя: поочередный рестарт воркеров уведомлений и очереди заявок",
+          icon: RefreshCw,
+          action: "Консоль",
+          to: "/admin/monitoring",
+        },
+      ] as const,
+    [now],
+  );
 
   return (
     <div className="employee-tab-ornament">
@@ -93,7 +140,7 @@ export function AdminAdministrationPage() {
                   className="type-display"
                   style={{
                     fontSize: "21px",
-                    fontWeight: "800",
+                    fontWeight: "600",
                     color: "#000000",
                     letterSpacing: "-0.4px",
                     margin: 0,
@@ -110,7 +157,7 @@ export function AdminAdministrationPage() {
                       background: "rgba(227,0,11,0.1)",
                       border: "1px solid rgba(227,0,11,0.3)",
                       fontSize: "11px",
-                      fontWeight: "700",
+                      fontWeight: "500",
                       color: "#e3000b",
                     }}
                   >
@@ -119,7 +166,8 @@ export function AdminAdministrationPage() {
                 )}
               </div>
               <p style={{ fontSize: "13px", color: "#000000", margin: 0, lineHeight: 1.55, maxWidth: "720px" }}>
-                Контроль инфраструктуры ЕСО, политик безопасности и окон обслуживания. Демо-интерфейс — действия имитируются.
+                Контроль инфраструктуры ЕСО, политик безопасности и окон обслуживания. Кнопки открывают разделы
+                админ-панели; актуальное время — {formatMskLine(now)}.
               </p>
             </div>
           </div>
@@ -133,32 +181,7 @@ export function AdminAdministrationPage() {
             marginBottom: "20px",
           }}
         >
-          {[
-            {
-              title: "Окно обслуживания",
-              text: "Следующее: сегодня 02:00–02:30 МСК · каталог курсов и индекс поиска",
-              icon: CalendarClock,
-              action: "Расписание",
-            },
-            {
-              title: "Окружения",
-              text: "Production v4.2.1 · Staging v4.2.1-rc · DR-сайт синхронизирован",
-              icon: Server,
-              action: "Сравнить",
-            },
-            {
-              title: "Доступ и секреты",
-              text: "Vault: 12 активных секретов · ротация API-ключей GigaChat по расписанию",
-              icon: KeyRound,
-              action: "Vault",
-            },
-            {
-              title: "Перезапуск сервисов",
-              text: "Без простоя: поочередный рестарт воркеров уведомлений и очереди заявок",
-              icon: RefreshCw,
-              action: "Консоль",
-            },
-          ].map((c, i) => (
+          {infraCards.map((c, i) => (
             <motion.div
               key={c.title}
               initial={{ opacity: 0, y: 10 }}
@@ -182,12 +205,15 @@ export function AdminAdministrationPage() {
                 >
                   <c.icon size={18} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
                 </div>
-                <span style={{ fontSize: "14px", fontWeight: "700", color: "#000000" }}>{c.title}</span>
+                <span style={{ fontSize: "14px", fontWeight: "500", color: "#000000" }}>{c.title}</span>
               </div>
               <p style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", margin: 0, lineHeight: 1.45 }}>{c.text}</p>
               <button
                 type="button"
-                onClick={() => notify(`«${c.action}»: демо — раздел в разработке.`)}
+                onClick={() => {
+                  navigate(c.to);
+                  showAdminToast(`Раздел «${c.title}»: переход к ${c.action}.`);
+                }}
                 style={{
                   marginTop: "4px",
                   alignSelf: "flex-start",
@@ -197,7 +223,7 @@ export function AdminAdministrationPage() {
                   background: "rgba(227,0,11,0.06)",
                   color: "#e3000b",
                   fontSize: "11px",
-                  fontWeight: "700",
+                  fontWeight: "500",
                   cursor: "pointer",
                   fontFamily: "var(--font-sans)",
                 }}
@@ -211,7 +237,7 @@ export function AdminAdministrationPage() {
         <div className="glass-card" style={{ padding: "20px", marginBottom: "18px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
             <Wrench size={18} color={brandIcon.stroke} strokeWidth={brandIcon.sw} />
-            <h2 style={{ fontSize: "15px", fontWeight: "800", margin: 0, color: "#000000" }}>Контрольный список</h2>
+            <h2 style={{ fontSize: "15px", fontWeight: "600", margin: 0, color: "#000000" }}>Контрольный список</h2>
           </div>
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
             {tasks.map((t) => (
@@ -253,7 +279,7 @@ export function AdminAdministrationPage() {
                     <span
                       style={{
                         fontSize: "13px",
-                        fontWeight: "700",
+                        fontWeight: "500",
                         color: "#000000",
                         textDecoration: t.done ? "line-through" : "none",
                         opacity: t.done ? 0.65 : 1,
@@ -262,7 +288,29 @@ export function AdminAdministrationPage() {
                       {t.title}
                     </span>
                   </div>
-                  <p style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", margin: "4px 0 0", lineHeight: 1.4 }}>{t.detail}</p>
+                  <p style={{ fontSize: "12px", color: "rgba(0,0,0,0.55)", margin: "4px 0 0", lineHeight: 1.4 }}>{taskDetail(t)}</p>
+                  <div style={{ marginTop: "10px", display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(t.openTo);
+                        showAdminToast(`Открыто: ${t.openLabel}`);
+                      }}
+                      style={{
+                        padding: "5px 11px",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(129,208,245,0.45)",
+                        background: "rgba(129,208,245,0.1)",
+                        color: "#000000",
+                        fontSize: "11px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        fontFamily: "var(--font-sans)",
+                      }}
+                    >
+                      {t.openLabel} →
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
@@ -280,8 +328,39 @@ export function AdminAdministrationPage() {
             lineHeight: 1.5,
           }}
         >
-          Подсказка: критические задачи дублируются в колокольчике шапки и в ИИ-панели на главной дашборда. Алроса ИТ · ЕСО
-          Admin.
+          <div style={{ marginBottom: "10px" }}>
+            Критические задачи продублируйте в уведомлениях и на главной дашборда. ЕСО v{ESO_VERSION} · Алроса ИТ · Admin.
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            {[
+              { label: "Главная", to: "/admin" },
+              { label: "Уведомления", to: "/admin/notifications" },
+              { label: "База данных", to: "/admin/database" },
+              { label: "Документация", to: "/admin/documentation" },
+            ].map((l) => (
+              <button
+                key={l.to}
+                type="button"
+                onClick={() => {
+                  navigate(l.to);
+                  showAdminToast(`Раздел: ${l.label}`);
+                }}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(0,0,0,0.1)",
+                  background: "#ffffff",
+                  color: "#000000",
+                  fontSize: "11px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-sans)",
+                }}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -35,14 +35,14 @@ export function TeamDashboardPage() {
               <h1
                 style={{
                   fontSize: "clamp(20px, 2.2vw, 1.55rem)",
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: "#000000",
                   letterSpacing: "-0.4px",
                   margin: 0,
                   lineHeight: 1.15,
                 }}
               >
-                Дашборд руководителя • ИИ-Цифровой Наставник Команды
+                Дашборд руководителя
               </h1>
             </div>
             <p style={{ fontSize: "13px", color: "rgba(0,0,0,0.55)", margin: 0, marginLeft: "14px", lineHeight: 1.55, maxWidth: "720px" }}>
@@ -59,7 +59,7 @@ export function TeamDashboardPage() {
               background: "linear-gradient(135deg, rgba(227, 0, 11, 0.08), rgba(129, 208, 245, 0.18))",
               border: "1px solid rgba(129,208,245,0.45)",
               fontSize: "12px",
-              fontWeight: 600,
+              fontWeight: 500,
               color: "#000000",
               flexShrink: 0,
               boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
