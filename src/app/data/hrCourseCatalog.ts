@@ -1,4 +1,4 @@
-import { aiPicks } from "../pages/CoursesPage";
+import { employeeAiCoursePicks as aiPicks } from "./employeeAiCoursePicks";
 
 export type HrCourseFormat = "external" | "internal";
 

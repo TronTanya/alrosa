@@ -1,6 +1,5 @@
 import { deepseekChat } from "./deepseekClient";
-import { isDomesticCourseUrl } from "./domesticCourseUrl";
-import { coursePageHref } from "./courseUrls";
+import { employeeAiCoursePicks, employeeAiCoursePicksById, type EmployeeAiCoursePickRow } from "../data/employeeAiCoursePicks";
 
 /** Формат карточки «ИИ-подбор» на странице курсов (совместим с демо aiPicks). */
 export type LiveAiCoursePick = {
@@ -31,7 +30,6 @@ function stripJsonFence(raw: string): string {
   return m ? m[1].trim() : t;
 }
 
-/** Если модель обернула JSON текстом — вырезаем объект с "courses". */
 function tryExtractJsonObject(raw: string): string | null {
   const t = stripJsonFence(raw);
   try {
@@ -53,13 +51,8 @@ function tryExtractJsonObject(raw: string): string | null {
   }
 }
 
-function num(v: unknown, fallback: number): number {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "string") {
-    const n = parseFloat(v.replace(",", ".").trim());
-    if (Number.isFinite(n)) return n;
-  }
-  return fallback;
+function clamp(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
 }
 
 function intMatch(v: unknown, fallback: number): number {
@@ -71,104 +64,109 @@ function intMatch(v: unknown, fallback: number): number {
   return fallback;
 }
 
-function clamp(n: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, n));
-}
-
-function normalizePick(raw: Record<string, unknown>, index: number): LiveAiCoursePick | null {
-  const title = typeof raw.title === "string" ? raw.title.trim() : "";
-  const provider = typeof raw.provider === "string" ? raw.provider.trim() : "";
-  const urlRaw = typeof raw.url === "string" ? raw.url.trim() : "";
-  if (!title || !provider) return null;
-  const url = coursePageHref(urlRaw, title, provider);
-  if (!isDomesticCourseUrl(url)) return null;
-
-  const rating = clamp(num(raw.rating, 4.5), 0, 5);
-  const reviews = typeof raw.reviews === "string" ? raw.reviews.trim() : "—";
-  const match = Math.round(clamp(intMatch(raw.match, 85), 60, 99));
-  const duration = typeof raw.duration === "string" ? raw.duration.trim() : "—";
-  const reason = typeof raw.reason === "string" ? raw.reason.trim() : "";
-  const tags = Array.isArray(raw.tags) ? raw.tags.filter((t): t is string => typeof t === "string").slice(0, 6) : [];
-
+function rowToLivePick(row: EmployeeAiCoursePickRow, overrides: { reason?: string; match?: unknown }): LiveAiCoursePick {
+  const match =
+    overrides.match !== undefined && overrides.match !== null && overrides.match !== ""
+      ? clamp(intMatch(overrides.match, row.match), 65, 99)
+      : row.match;
+  const reason =
+    typeof overrides.reason === "string" && overrides.reason.trim()
+      ? overrides.reason.trim()
+      : row.reason;
   return {
-    id: `live-${index}-${title.slice(0, 24).replace(/\s+/g, "-")}`,
-    title,
-    provider,
-    url,
-    rating,
-    reviews,
+    id: row.id,
+    title: row.title,
+    provider: row.provider,
+    url: row.url,
+    rating: row.rating,
+    reviews: row.reviews,
     match,
-    duration,
-    tags,
-    reason: reason || "Курс согласуется с вашим профилем и целями развития.",
+    duration: row.duration,
+    tags: row.tags,
+    reason,
   };
 }
 
-const SYSTEM_PROMPT = `Ты аналитик корпоративного обучения «Алроса ИТ». Подбираешь ТОЛЬКО отечественные курсы: платформы РФ, русскоязычные программы на российских доменах (.ru, .рф, .edu.ru) и признанные сервисы (Stepik, Яндекс Практикум, Нетология, Skillbox, GeekBrains, Hexlet, Открытое образование, OTUS и т.д.).
+const CATALOG_SNIPPET = employeeAiCoursePicks.map((c) => ({
+  id: c.id,
+  title: c.title,
+  provider: c.provider,
+  tags: c.tags,
+}));
 
-Важно по составу подборки: нужны не только «популярные» массовые онлайн-курсы, но и программы от образовательных организаций высшего и среднего профессионального образования — государственных и коммерческих вузов и колледжей: дистанционные и очно-заочные программы, ДПО, профпереподготовка, курсы на openedu.ru, программы на Stepik от вузов, страницы конкретных курсов/направлений на официальных сайтах вузов и колледжей (в т.ч. .edu.ru). Старайся сбалансировать список: часть позиций — с коммерческих школ/платформ, часть — из академической среды (вуз/колледж), если есть релевантные публичные ссылки. В поле "provider" указывай понятно: например «МФТИ · …», «Колледж …», «Нетология», «Stepik · ИТМО».
+const SYSTEM_PROMPT = `Ты аналитик корпоративного обучения «Алроса ИТ». Тебе дан ЖЁСТКИЙ каталог курсов (id, title, provider, tags) — это единственный допустимый источник рекомендаций.
 
-КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО включать курсы с зарубежных MOOC и глобальных площадок: Coursera, edX, Udemy, Pluralsight, Khan Academy, LinkedIn Learning, AWS/Google/Microsoft training на международных доменах и любые аналоги. Если не находишь 4–6 уверенных отечественных вариантов — всё равно не подставляй зарубежные ссылки; лучше честно сузь список в note.
+Твоя задача: выбрать 4–6 позиций из каталога по релевантности профилю пользователя, УПОРЯДОЧИТЬ от более подходящих к менее, при необходимости слегка скорректировать match (65–99) и reason на русском (1–2 предложения, почему курс подходит).
+
+КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО придумывать новые id, новые курсы или URL — используй ТОЛЬКО id из переданного JSON-каталога.
 
 Верни ТОЛЬКО один JSON-объект (без markdown, без текста вокруг):
 {
-  "note": "одно короткое предложение на русском (что учтено в подборе)",
-  "courses": [
+  "note": "одно короткое предложение на русском: что учтено в подборе",
+  "selection": [
     {
-      "title": "название курса",
-      "provider": "платформа · автор/школа",
-      "url": "https://...",
-      "rating": 4.7,
-      "reviews": "12k",
+      "id": "строка — один из id каталога",
       "match": 92,
-      "duration": "8 недель",
-      "tags": ["навык1", "навык2"],
-      "reason": "почему курс подходит — на русском, 1–2 предложения"
+      "reason": "почему курс подходит — на русском"
     }
   ]
 }
 
 Правила:
-- Ровно 4–6 элементов в "courses", все — исключительно отечественные площадки (см. выше).
-- По возможности включи программы разного типа: и с крупных онлайн-платформ, и с сайтов вузов/колледжей (государственных или коммерческих), если есть прямые ссылки на страницу курса.
-- Каждый "url" — прямой https:// на страницу курса на допустимом домене (.ru, .рф, .edu.ru, stepik.org, practicum.yandex.ru, hexlet.io и т.п.).
-- В "reason" укажи, почему программа уместна (в т.ч. если это вузовская/колледжская программа — кратко: уровень, аккредитация/формат, язык).
-- rating: число 0–5 (допускается строка "4.7").
-- match: число 65–98 (процент).
-- reviews: строка.
-- Не используй главные страницы платформ без пути к курсу.
-- Теги и reason на русском.`;
+- В "selection" от 4 до 6 элементов, id не повторяются.
+- Каждый id обязан существовать в каталоге пользователя.
+- match: число 65–99.
+- reason и note на русском.`;
 
 const USER_PROMPT = `Профиль: Middle Software Engineer, backend / распределённые системы, работа в российской компании.
 Цели развития 2026: system design, TypeScript, ML для инженеров, observability/SRE, лидерство в ИТ.
 
-Подбери 4–6 курсов ТОЛЬКО на отечественных площадках под этот план: сочетай популярные открытые курсы и программы вузов/колледжей (государственных и коммерческих), где уместно. Для каждого курса — проверяемая прямая ссылка на страницу программы (не главную сайта). Зарубежные платформы не использовать.`;
+Каталог курсов (JSON):
+${JSON.stringify(CATALOG_SNIPPET, null, 0)}
 
-function parseCourseResponse(content: string): LiveAiCourseResponse | null {
+Подбери 4–6 курсов из каталога по релевантности; верни только JSON по схеме из системной инструкции.`;
+
+type SelectionItem = { id?: unknown; match?: unknown; reason?: unknown };
+
+function parseSelectionResponse(content: string): { note: string; selection: SelectionItem[] } | null {
   const jsonStr = tryExtractJsonObject(content);
   if (!jsonStr) return null;
   try {
-    const data = JSON.parse(jsonStr) as {
-      note?: unknown;
-      courses?: unknown;
-    };
+    const data = JSON.parse(jsonStr) as { note?: unknown; selection?: unknown };
     const note = typeof data.note === "string" ? data.note.trim() : "";
-    if (!Array.isArray(data.courses)) return null;
-    const courses: LiveAiCoursePick[] = [];
-    data.courses.forEach((item, i) => {
-      if (item && typeof item === "object") {
-        const p = normalizePick(item as Record<string, unknown>, i);
-        if (p) courses.push(p);
-      }
-    });
-    if (courses.length === 0) return null;
-    return { courses, note };
+    if (!Array.isArray(data.selection)) return null;
+    return { note, selection: data.selection as SelectionItem[] };
   } catch {
     return null;
   }
 }
 
-/** Запрос к модели (YandexGPT): подбор курсов. */
+/** Дополняет подбор до 4–6 курсов проверенными ссылками из каталога. */
+function buildCoursesFromSelection(selection: SelectionItem[]): LiveAiCoursePick[] {
+  const seen = new Set<string>();
+  const out: LiveAiCoursePick[] = [];
+
+  for (const item of selection) {
+    const id = typeof item.id === "string" ? item.id.trim() : "";
+    if (!id || seen.has(id)) continue;
+    const row = employeeAiCoursePicksById.get(id);
+    if (!row) continue;
+    seen.add(id);
+    const reasonOverride = typeof item.reason === "string" ? item.reason : undefined;
+    out.push(rowToLivePick(row, { match: item.match, reason: reasonOverride }));
+  }
+
+  for (const row of employeeAiCoursePicks) {
+    if (out.length >= 6) break;
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    out.push(rowToLivePick(row, {}));
+  }
+
+  return out.slice(0, 6);
+}
+
+/** Запрос к модели (YandexGPT): ранжирование курсов из каталога (рабочие ссылки из данных приложения). */
 export async function fetchLiveAiCoursePicks(signal?: AbortSignal): Promise<FetchCoursePicksOutcome> {
   const out = await deepseekChat(
     [
@@ -177,23 +175,38 @@ export async function fetchLiveAiCoursePicks(signal?: AbortSignal): Promise<Fetc
     ],
     {
       max_tokens: 4096,
-      temperature: 0.35,
+      temperature: 0.25,
       signal,
       response_format: { type: "json_object" },
-    }
+    },
   );
 
   if (!out.ok) {
     return { ok: false, error: out.reason };
   }
 
-  const parsed = parseCourseResponse(out.content);
+  const parsed = parseSelectionResponse(out.content);
   if (!parsed) {
     return {
       ok: false,
       error:
-        "Ответ модели не удалось разобрать как JSON с полем courses, либо все ссылки не с отечественных площадок. Попробуйте «Обновить подбор».",
+        "Ответ модели не удалось разобрать как JSON с полем selection. Попробуйте «Обновить подбор».",
     };
   }
-  return { ok: true, data: parsed };
+
+  const courses = buildCoursesFromSelection(parsed.selection);
+  if (courses.length === 0) {
+    return {
+      ok: false,
+      error: "Модель не выбрала ни одного известного id курса. Попробуйте «Обновить подбор».",
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      courses,
+      note: parsed.note || "Подбор сформирован из корпоративного каталога с проверенными ссылками.",
+    },
+  };
 }

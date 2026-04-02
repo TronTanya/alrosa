@@ -25,62 +25,9 @@ import {
   readTeamWidePlanCourses,
   TEAM_WIDE_COURSES_UPDATED,
 } from "../lib/teamWideCourseEnrollment";
+import { employeeAiCoursePicks } from "../data/employeeAiCoursePicks";
 
-/** Демо-данные: подбор под инженера-программиста (Middle) + цели развития 2026 (если API недоступен) — только отечественные площадки */
-export const aiPicks = [
-  {
-    id: "1",
-    title: "Проектирование высоконагруженных систем",
-    provider: "OTUS",
-    url: "https://otus.ru/lessons/razrabotka-vysokonagruzhennyh-sistem/",
-    rating: 4.8,
-    reviews: "2.1k",
-    match: 96,
-    duration: "8 недель",
-    tags: ["архитектура", "бэкенд"],
-    reason:
-      "Программа OTUS по архитектуре распределённых систем на русском — совпадает с целью по проектированию нагрузки.",
-  },
-  {
-    id: "2",
-    title: "Продвинутый TypeScript и типобезопасность",
-    provider: "Stepik",
-    url: "https://stepik.org/course/235437/promo",
-    rating: 4.9,
-    reviews: "3.4k",
-    match: 93,
-    duration: "6 недель",
-    tags: ["фронтенд", "TypeScript"],
-    reason:
-      "Полный курс JS/TS на Stepik: теория, практика и типизация — близко к вашему стеку и отзывам сообщества.",
-  },
-  {
-    id: "3",
-    title: "Машинное обучение для инженеров",
-    provider: "Яндекс Практикум",
-    url: "https://practicum.yandex.ru/data-scientist/",
-    rating: 4.7,
-    reviews: "5k",
-    match: 88,
-    duration: "12 недель",
-    tags: ["ML", "Python"],
-    reason:
-      "Трек по анализу данных и ML на русском: практика на реальных кейсах, удобно для инженеров из РФ.",
-  },
-  {
-    id: "4",
-    title: "DevOps и контейнеризация",
-    provider: "Нетология",
-    url: "https://netology.ru/programs/devops",
-    rating: 4.6,
-    reviews: "1.8k",
-    match: 91,
-    duration: "4 недели",
-    tags: ["девопс", "SRE"],
-    reason:
-      "Курс Нетологии по CI/CD и инфраструктуре на русском — близко к задачам SRE и корпоративным стандартам.",
-  },
-];
+export { employeeAiCoursePicks as aiPicks };
 
 /** Пройденные обучения — с рабочими ссылками на платформы */
 export const completedCourses = [
@@ -123,7 +70,7 @@ export const assignedCourses = [
   },
 ];
 
-const STATIC_LIVE_PICKS: LiveAiCoursePick[] = aiPicks.map((c) => ({
+const STATIC_LIVE_PICKS: LiveAiCoursePick[] = employeeAiCoursePicks.map((c) => ({
   id: c.id,
   title: c.title,
   provider: c.provider,
@@ -333,10 +280,10 @@ export function CoursesPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="courses-panel__title">Как работает анализ</div>
             <p className="courses-panel__text">
-              Модель обобщает сведения о программах на российских платформах, в вузах и колледжах (государственных и коммерческих): язык, формат,
-              отзывы, длительность, навыки; сопоставляет с профилем и целями развития. Подбор включает и массовые онлайн-курсы, и академические
-              программы там, где это уместно; зарубежные MOOC не попадают в список. Обновление — по запросу, опора на публичные сведения о программах.
-              Рекомендации — ориентир: согласование — за вами и руководителем.
+              Модель ранжирует курсы из внутреннего каталога портала с проверенными ссылками на программы (Stepik, OTUS, Нетология, Яндекс Практикум и
+              др.): сопоставляет теги и описания с вашим профилем и целями развития, может уточнить формулировку «почему подходит» и процент совпадения.
+              Ссылки на курсы всегда ведут на страницы из каталога, а не на выдуманные URL. Обновление подбора — по кнопке ниже. Согласование программ —
+              за вами и руководителем.
             </p>
           </div>
         </motion.div>
@@ -407,7 +354,8 @@ export function CoursesPage() {
         ) : null}
         {!fromLiveAi && !loading && !apiError ? (
           <p className="courses-demo-hint">
-            Показан локальный демо-подбор (отечественные площадки). Укажите ключ Yandex Cloud в .env и перезапустите dev — список подтянется из модели.
+            Показан локальный демо-подбор из каталога. Укажите ключ Yandex Cloud в .env и перезапустите dev — ИИ перестроит порядок и пояснения по тому же
+            каталогу (ссылки останутся рабочими).
           </p>
         ) : null}
 
